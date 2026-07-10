@@ -1599,16 +1599,22 @@ async function renderPortalForUser(user){
     studentView.classList.add('hidden');
     teacherView.classList.add('hidden');
     adminView.classList.remove('hidden');
+    adminView.classList.add('in');
+    adminView.querySelectorAll('.reveal').forEach(el=>el.classList.add('in'));
     switchAdminTab('dashboard');
   } else if(profile.role === 'teacher'){
     studentView.classList.add('hidden');
     adminView.classList.add('hidden');
     teacherView.classList.remove('hidden');
+    teacherView.classList.add('in');
+    teacherView.querySelectorAll('.reveal').forEach(el=>el.classList.add('in'));
     loadTeacherStudentList();
   } else {
     teacherView.classList.add('hidden');
     adminView.classList.add('hidden');
     studentView.classList.remove('hidden');
+    studentView.classList.add('in');
+    studentView.querySelectorAll('.reveal').forEach(el=>el.classList.add('in'));
     loadStudentDashboard(user.id);
   }
 }
