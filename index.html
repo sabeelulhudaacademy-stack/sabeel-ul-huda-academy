@@ -808,6 +808,12 @@
       <div id="studentHomeworkList" class="space-y-4 text-sm">Loading…</div>
     </div>
 
+    <!-- ---------- STUDENT LIVE CLASSES ---------- -->
+    <div id="portal-student-liveclasses" class="hidden reveal mt-6 bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-6 border border-gold-500/20">
+      <h4 class="font-display font-semibold text-lg mb-4">🎥 Live Classes</h4>
+      <div id="studentLiveClassList" class="space-y-3 text-sm">Loading…</div>
+    </div>
+
     <!-- ---------- PARENT DASHBOARD ---------- -->
     <div id="portal-parent" class="hidden reveal space-y-6">
       <div id="parentChildTabs" class="flex flex-wrap gap-2"></div>
@@ -835,6 +841,11 @@
         </div>
       </div>
       <p id="parentNoChildren" class="hidden text-sm opacity-70 text-center bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-6 border border-gold-500/20">No linked children found yet. Please contact the academy to link your account.</p>
+
+      <div id="parentLiveClassesBox" class="hidden bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-6 border border-gold-500/20">
+        <h4 class="font-display font-semibold text-lg mb-4">🎥 Live Classes</h4>
+        <div id="parentLiveClassList" class="space-y-3 text-sm">Loading…</div>
+      </div>
     </div>
 
     <!-- ---------- TEACHER DASHBOARD ---------- -->
@@ -884,6 +895,16 @@
           </form>
         </div>
       </div>
+
+      <!-- Teacher's own Live Classes -->
+      <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-6 border border-gold-500/20 mt-6">
+        <div class="flex justify-between items-center mb-4">
+          <h4 class="font-display font-semibold text-lg">🎥 My Live Classes</h4>
+          <button onclick="openLiveClassModal('teacher')" class="btn-gold px-4 py-2 rounded-lg text-sm font-semibold">+ Schedule Class</button>
+        </div>
+        <p class="text-xs opacity-60 mb-5">Apni class ya kisi ek student ke liye Zoom/Google Meet class schedule karein.</p>
+        <div id="teacherLiveClassList" class="space-y-3 text-sm">Loading…</div>
+      </div>
     </div>
     <!-- ---------- ADMIN DASHBOARD ---------- -->
     <div id="portal-admin" class="hidden reveal">
@@ -897,6 +918,7 @@
           <button onclick="switchAdminTab('classes')" data-admintab="classes" class="admin-tab w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2.5">📚 Classes</button>
           <button onclick="switchAdminTab('attendance')" data-admintab="attendance" class="admin-tab w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2.5">🗓️ Attendance</button>
           <button onclick="switchAdminTab('tasks')" data-admintab="tasks" class="admin-tab w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2.5">📋 Tasks</button>
+          <button onclick="switchAdminTab('liveclasses')" data-admintab="liveclasses" class="admin-tab w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2.5">🎥 Live Classes</button>
           <button onclick="switchAdminTab('reports')" data-admintab="reports" class="admin-tab w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2.5">📈 Reports</button>
           <button onclick="switchAdminTab('approvals')" data-admintab="approvals" class="admin-tab w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2.5">✅ User Approvals</button>
           <button onclick="switchAdminTab('settings')" data-admintab="settings" class="admin-tab w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2.5">⚙️ Settings</button>
@@ -1141,6 +1163,23 @@
                   <th class="py-2 px-4">Title</th><th class="py-2 px-4">For</th><th class="py-2 px-4">Due</th><th class="py-2 px-4">Status</th><th class="py-2 px-4 text-right">Actions</th>
                 </tr></thead>
                 <tbody id="admTasksTableBody"><tr><td colspan="5" class="py-6 text-center opacity-60 text-sm">Loading…</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Live Classes tab -->
+          <div id="admintab-liveclasses" class="admin-panel hidden bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-6 border border-gold-500/20">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="font-display font-semibold text-lg">🎥 Live Classes</h3>
+              <button onclick="openLiveClassModal('admin')" class="btn-gold px-4 py-2 rounded-lg text-sm font-semibold">+ Schedule Class</button>
+            </div>
+            <p class="text-xs opacity-60 mb-5">Zoom/Google Meet class schedule karein — poori class ke liye ya kisi ek student ke liye, kisi bhi teacher ko host bana kar.</p>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead><tr class="text-left border-b border-gold-500/20 opacity-70">
+                  <th class="py-2 px-4">Title</th><th class="py-2 px-4">For</th><th class="py-2 px-4">Teacher</th><th class="py-2 px-4">When</th><th class="py-2 px-4">Status</th><th class="py-2 px-4 text-right">Actions</th>
+                </tr></thead>
+                <tbody id="admLiveClassesTableBody"><tr><td colspan="6" class="py-6 text-center opacity-60 text-sm">Loading…</td></tr></tbody>
               </table>
             </div>
           </div>
@@ -1403,6 +1442,50 @@
           </div>
           <div class="flex gap-3 pt-2">
             <button type="button" onclick="closeTaskModal()" class="flex-1 py-2.5 rounded-lg font-semibold text-sm border border-gold-500/40">Cancel</button>
+            <button class="flex-1 btn-gold py-2.5 rounded-lg font-semibold text-sm">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Live Class schedule modal (shared by Admin + Teacher, mode controls whether Teacher select is shown) -->
+    <div id="liveClassModal" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-5 bg-black/50">
+      <div class="bg-fog-50 dark:bg-emerald-950 rounded-2xl p-6 w-full max-w-md border border-gold-500/20 max-h-[90vh] overflow-y-auto">
+        <h4 class="font-display text-lg font-semibold mb-4">Schedule Live Class</h4>
+        <form onsubmit="return saveLiveClass(event)" class="space-y-3">
+          <input required id="lcTitle" placeholder="Class Title (e.g. Tajweed - Week 3)" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+          <textarea id="lcDesc" placeholder="Description (optional)" rows="2" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500"></textarea>
+
+          <select id="lcTeacher" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+            <option value="">— Select Teacher (host) —</option>
+          </select>
+
+          <select id="lcAssignType" onchange="toggleLiveClassAssignType()" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+            <option value="class">Assign to whole Class</option>
+            <option value="student">Assign to one Student</option>
+          </select>
+          <select id="lcClass" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+            <option value="">— Select Class —</option>
+          </select>
+          <select id="lcStudent" class="hidden w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+            <option value="">— Select Student —</option>
+          </select>
+
+          <div class="grid grid-cols-2 gap-3">
+            <select id="lcPlatform" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+              <option value="zoom">Zoom</option>
+              <option value="google_meet">Google Meet</option>
+              <option value="other">Other</option>
+            </select>
+            <input id="lcDuration" type="number" min="15" step="5" value="60" placeholder="Duration (mins)" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+          </div>
+
+          <input required id="lcMeetingLink" type="url" placeholder="Meeting Link (https://...)" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+          <input id="lcMeetingId" placeholder="Meeting ID / Passcode (optional)" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+          <input required id="lcScheduledAt" type="datetime-local" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+
+          <div class="flex gap-3 pt-2">
+            <button type="button" onclick="closeLiveClassModal()" class="flex-1 py-2.5 rounded-lg font-semibold text-sm border border-gold-500/40">Cancel</button>
             <button class="flex-1 btn-gold py-2.5 rounded-lg font-semibold text-sm">Save</button>
           </div>
         </form>
@@ -2170,6 +2253,7 @@ async function renderPortalForUser(user){
     teacherView.classList.add('in');
     teacherView.querySelectorAll('.reveal').forEach(el=>el.classList.add('in'));
     loadTeacherStudentList();
+    loadTeacherLiveClasses(user.id);
   } else if(profile.role === 'parent'){
     parentView.classList.remove('hidden');
     parentView.classList.add('in');
@@ -2244,6 +2328,8 @@ async function loadParentChildDetails(studentId){
 
   document.getElementById('pProgress').textContent = totalAtt ? `${pct}% attendance · ${pendingHw} homework pending` : 'Not started yet';
   document.getElementById('pCertificates').textContent = (certs && certs.length) ? `${certs.length} earned` : 'None yet';
+
+  loadParentLiveClasses(studentId);
 }
 
 supabaseClient.auth.onAuthStateChange((event, session) => {
@@ -2299,10 +2385,12 @@ async function loadStudentDashboard(uid){
 
     document.getElementById('sProgress').textContent = totalAtt ? `${pct}% attendance · ${pendingHw} homework pending` : 'Not started yet';
     document.getElementById('sCertificates').textContent = (certs && certs.length) ? `${certs.length} earned` : 'None yet';
-    document.getElementById('sRecordings').textContent = 'Check Live Classes tab';
+    document.getElementById('sRecordings').textContent = 'Check Live Classes below';
 
     await loadStudentHomeworkList(studentId);
     document.getElementById('portal-student-homework').classList.remove('hidden');
+    document.getElementById('portal-student-liveclasses').classList.remove('hidden');
+    loadStudentLiveClasses(studentId);
   }catch(e){
     setAll('Could not load — please refresh.');
   }
@@ -2366,8 +2454,6 @@ async function submitHomework(taskId, studentId){
   if(error){ alert('Could not submit: ' + error.message); return; }
   alert('Homework submitted!');
   loadStudentHomeworkList(studentId);
-}
-  }catch(err){ setAll('Could not load data.'); }
 }
 
 let selectedStudentId = null;
@@ -2464,6 +2550,7 @@ function switchAdminTab(tab){
   if(tab === 'classes') loadAdminClasses();
   if(tab === 'attendance') loadAdminAttendance();
   if(tab === 'tasks') loadAdminTasks();
+  if(tab === 'liveclasses') loadAdminLiveClasses();
   if(tab === 'reports') loadAdminReports();
   if(tab === 'settings') loadAcademySettings();
 }
@@ -3656,6 +3743,222 @@ async function deleteTask(id){
   const { error } = await supabaseClient.from('tasks').delete().eq('id', id);
   if(error){ alert('Could not delete: ' + error.message); return; }
   loadAdminTasks();
+}
+
+/* ================= LIVE CLASSES (Zoom / Google Meet) ================= */
+let liveClassModalMode = 'admin'; // 'admin' or 'teacher'
+
+function toggleLiveClassAssignType(){
+  const type = document.getElementById('lcAssignType').value;
+  document.getElementById('lcClass').classList.toggle('hidden', type !== 'class');
+  document.getElementById('lcStudent').classList.toggle('hidden', type !== 'student');
+}
+
+async function openLiveClassModal(mode){
+  liveClassModalMode = mode;
+  document.getElementById('lcTitle').value = '';
+  document.getElementById('lcDesc').value = '';
+  document.getElementById('lcAssignType').value = 'class';
+  document.getElementById('lcPlatform').value = 'zoom';
+  document.getElementById('lcDuration').value = 60;
+  document.getElementById('lcMeetingLink').value = '';
+  document.getElementById('lcMeetingId').value = '';
+  document.getElementById('lcScheduledAt').value = '';
+
+  if(adminClassesStudentsCache.length===0){
+    const { data: students } = await supabaseClient.from('students').select('*').order('name');
+    adminClassesStudentsCache = students || [];
+  }
+  const classes = [...new Set(adminClassesStudentsCache.map(s => s.class).filter(Boolean))];
+  document.getElementById('lcClass').innerHTML = '<option value="">— Select Class —</option>' + classes.map(c => `<option value="${c}">${c}</option>`).join('');
+  document.getElementById('lcStudent').innerHTML = '<option value="">— Select Student —</option>' + adminClassesStudentsCache.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+
+  const teacherSel = document.getElementById('lcTeacher');
+  if(mode === 'admin'){
+    teacherSel.classList.remove('hidden');
+    teacherSel.required = true;
+    if(adminTeachersCache.length===0){
+      const { data: teachers } = await supabaseClient.from('users').select('*').eq('role','teacher').eq('approved', true);
+      adminTeachersCache = teachers || [];
+    }
+    teacherSel.innerHTML = '<option value="">— Select Teacher (host) —</option>' + adminTeachersCache.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+  } else {
+    teacherSel.classList.add('hidden');
+    teacherSel.required = false;
+  }
+
+  toggleLiveClassAssignType();
+  document.getElementById('liveClassModal').classList.remove('hidden');
+}
+
+function closeLiveClassModal(){
+  document.getElementById('liveClassModal').classList.add('hidden');
+}
+
+async function saveLiveClass(e){
+  e.preventDefault();
+  const type = document.getElementById('lcAssignType').value;
+  const scheduledLocal = document.getElementById('lcScheduledAt').value;
+  let teacherId = null;
+  if(liveClassModalMode === 'admin'){
+    teacherId = document.getElementById('lcTeacher').value || null;
+    if(!teacherId){ alert('Please select a teacher to host this class.'); return false; }
+  } else {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    teacherId = user.id;
+  }
+  const payload = {
+    title: document.getElementById('lcTitle').value.trim(),
+    description: document.getElementById('lcDesc').value.trim() || null,
+    teacher_id: teacherId,
+    class: type === 'class' ? (document.getElementById('lcClass').value || null) : null,
+    student_id: type === 'student' ? (document.getElementById('lcStudent').value || null) : null,
+    platform: document.getElementById('lcPlatform').value,
+    meeting_link: document.getElementById('lcMeetingLink').value.trim(),
+    meeting_id: document.getElementById('lcMeetingId').value.trim() || null,
+    scheduled_at: scheduledLocal ? new Date(scheduledLocal).toISOString() : null,
+    duration_minutes: Number(document.getElementById('lcDuration').value) || 60,
+    status: 'scheduled'
+  };
+  const { error } = await supabaseClient.from('live_classes').insert(payload);
+  if(error){ alert('Could not schedule class: ' + error.message); return false; }
+  closeLiveClassModal();
+  if(liveClassModalMode === 'admin'){
+    loadAdminLiveClasses();
+  } else {
+    loadTeacherLiveClasses(teacherId);
+  }
+  return false;
+}
+
+let adminLiveClassesCache = [];
+
+async function loadAdminLiveClasses(){
+  if(adminClassesStudentsCache.length===0){
+    const { data: students } = await supabaseClient.from('students').select('*').order('name');
+    adminClassesStudentsCache = students || [];
+  }
+  if(adminTeachersCache.length===0){
+    const { data: teachers } = await supabaseClient.from('users').select('*').eq('role','teacher').eq('approved', true);
+    adminTeachersCache = teachers || [];
+  }
+  const tbody = document.getElementById('admLiveClassesTableBody');
+  tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center opacity-60 text-sm">Loading…</td></tr>';
+  const { data: rows, error } = await supabaseClient.from('live_classes').select('*').order('scheduled_at', { ascending: true });
+  if(error){ tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-red-500 text-sm">Could not load live classes.</td></tr>'; return; }
+  adminLiveClassesCache = rows || [];
+  if(adminLiveClassesCache.length===0){ tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center opacity-60 text-sm">No live classes scheduled yet — click "Schedule Class" to create one.</td></tr>'; return; }
+  tbody.innerHTML = adminLiveClassesCache.map(c => {
+    const forWhom = c.student_id
+      ? ((adminClassesStudentsCache.find(s => s.id === c.student_id) || {}).name || 'Student')
+      : (c.class ? 'Class: ' + c.class : 'All');
+    const teacherName = (adminTeachersCache.find(t => t.id === c.teacher_id) || {}).name || '—';
+    const when = c.scheduled_at ? new Date(c.scheduled_at).toLocaleString() : '—';
+    const statusColors = {
+      scheduled: 'bg-gold-500/15 text-gold-700 dark:text-gold-400',
+      ongoing: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400',
+      completed: 'bg-fog-500/15 opacity-70',
+      cancelled: 'bg-red-500/15 text-red-600 dark:text-red-400'
+    };
+    const statusBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-semibold ${statusColors[c.status] || ''}">${c.status}</span>`;
+    return `<tr class="border-b border-gold-500/10 last:border-0">
+      <td class="py-3 px-4 font-medium">${c.title} <a href="${c.meeting_link}" target="_blank" class="text-xs text-gold-600 dark:text-gold-400 underline">🔗</a></td>
+      <td class="py-3 px-4 opacity-80">${forWhom}</td>
+      <td class="py-3 px-4 opacity-80">${teacherName}</td>
+      <td class="py-3 px-4 opacity-80">${when}</td>
+      <td class="py-3 px-4">${statusBadge}</td>
+      <td class="py-3 px-4 text-right space-x-2 whitespace-nowrap">
+        <button onclick="cycleLiveClassStatus('${c.id}','${c.status}')" title="Change status (scheduled → ongoing → completed → cancelled)" class="hover:text-gold-500">🔁</button>
+        <button onclick="deleteLiveClass('${c.id}')" title="Delete" class="hover:text-red-500">🗑️</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function cycleLiveClassStatus(id, currentStatus){
+  const order = ['scheduled','ongoing','completed','cancelled'];
+  const next = order[(order.indexOf(currentStatus) + 1) % order.length];
+  const { error } = await supabaseClient.from('live_classes').update({ status: next }).eq('id', id);
+  if(error){ alert('Could not update: ' + error.message); return; }
+  loadAdminLiveClasses();
+}
+
+async function deleteLiveClass(id){
+  if(!confirm('Delete this live class?')) return;
+  const { error } = await supabaseClient.from('live_classes').delete().eq('id', id);
+  if(error){ alert('Could not delete: ' + error.message); return; }
+  loadAdminLiveClasses();
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if(user) loadTeacherLiveClasses(user.id);
+}
+
+async function loadTeacherLiveClasses(teacherId){
+  const box = document.getElementById('teacherLiveClassList');
+  if(!box) return;
+  box.innerHTML = 'Loading…';
+  const { data: rows, error } = await supabaseClient.from('live_classes').select('*').eq('teacher_id', teacherId).order('scheduled_at', { ascending: true });
+  if(error){ box.innerHTML = '<p class="opacity-60">Could not load live classes.</p>'; return; }
+  if(!rows || rows.length===0){ box.innerHTML = '<p class="opacity-60">No live classes scheduled yet.</p>'; return; }
+  box.innerHTML = rows.map(c => {
+    const forWhom = c.class ? 'Class: ' + c.class : (c.student_id ? 'One Student' : 'All');
+    const when = c.scheduled_at ? new Date(c.scheduled_at).toLocaleString() : '—';
+    return `<div class="p-4 rounded-xl bg-fog-50 dark:bg-emerald-950 border border-gold-500/10 flex flex-wrap justify-between items-center gap-2">
+      <div>
+        <p class="font-semibold">${c.title}</p>
+        <p class="text-xs opacity-60">${forWhom} · ${when} · ${c.status}</p>
+      </div>
+      <div class="flex gap-2 items-center">
+        <a href="${c.meeting_link}" target="_blank" class="btn-gold px-3 py-1.5 rounded-lg text-xs font-semibold">Join</a>
+        <button onclick="deleteLiveClass('${c.id}')" title="Delete" class="text-xs px-2 hover:text-red-500">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function loadStudentLiveClasses(studentId){
+  const box = document.getElementById('studentLiveClassList');
+  box.innerHTML = 'Loading…';
+  const { data: myClass } = await supabaseClient.from('students').select('class').eq('id', studentId).single();
+  const classFilter = myClass && myClass.class ? myClass.class : '__none__';
+  const { data: rows, error } = await supabaseClient.from('live_classes')
+    .select('*')
+    .or(`student_id.eq.${studentId},class.eq.${classFilter}`)
+    .order('scheduled_at', { ascending: true });
+  if(error){ box.innerHTML = '<p class="opacity-60">Could not load live classes.</p>'; return; }
+  if(!rows || rows.length===0){ box.innerHTML = '<p class="opacity-60">No live classes scheduled yet.</p>'; return; }
+  box.innerHTML = rows.map(c => {
+    const when = c.scheduled_at ? new Date(c.scheduled_at).toLocaleString() : '—';
+    const isPast = c.status === 'completed' || c.status === 'cancelled';
+    return `<div class="p-4 rounded-xl bg-fog-50 dark:bg-emerald-950 border border-gold-500/10 flex flex-wrap justify-between items-center gap-2">
+      <div>
+        <p class="font-semibold">${c.title}</p>
+        <p class="text-xs opacity-60">${when} · ${c.platform} · ${c.status}</p>
+      </div>
+      ${isPast ? '' : `<a href="${c.meeting_link}" target="_blank" class="btn-gold px-3 py-1.5 rounded-lg text-xs font-semibold">Join</a>`}
+    </div>`;
+  }).join('');
+}
+
+async function loadParentLiveClasses(studentId){
+  const wrap = document.getElementById('parentLiveClassesBox');
+  const box = document.getElementById('parentLiveClassList');
+  wrap.classList.remove('hidden');
+  box.innerHTML = 'Loading…';
+  const { data: myClass } = await supabaseClient.from('students').select('class').eq('id', studentId).single();
+  const classFilter = myClass && myClass.class ? myClass.class : '__none__';
+  const { data: rows, error } = await supabaseClient.from('live_classes')
+    .select('*')
+    .or(`student_id.eq.${studentId},class.eq.${classFilter}`)
+    .order('scheduled_at', { ascending: true });
+  if(error){ box.innerHTML = '<p class="opacity-60">Could not load live classes.</p>'; return; }
+  if(!rows || rows.length===0){ box.innerHTML = '<p class="opacity-60">No live classes scheduled yet.</p>'; return; }
+  box.innerHTML = rows.map(c => {
+    const when = c.scheduled_at ? new Date(c.scheduled_at).toLocaleString() : '—';
+    return `<div class="p-4 rounded-xl bg-fog-50 dark:bg-emerald-950 border border-gold-500/10">
+      <p class="font-semibold">${c.title}</p>
+      <p class="text-xs opacity-60">${when} · ${c.platform} · ${c.status}</p>
+    </div>`;
+  }).join('');
 }
 
 /* ---------------- HOMEWORK SUBMISSIONS (teacher/admin review) ---------------- */
