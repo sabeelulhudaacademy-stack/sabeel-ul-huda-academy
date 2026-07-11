@@ -820,6 +820,12 @@
       <div id="studentInvoiceList" class="space-y-3 text-sm">Loading…</div>
     </div>
 
+    <!-- ---------- STUDENT EXAMS ---------- -->
+    <div id="portal-student-exams" class="hidden reveal mt-6 bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-6 border border-gold-500/20">
+      <h4 class="font-display font-semibold text-lg mb-4">📝 Exams</h4>
+      <div id="studentExamList" class="space-y-3 text-sm">Loading…</div>
+    </div>
+
     <!-- ---------- PARENT DASHBOARD ---------- -->
     <div id="portal-parent" class="hidden reveal space-y-6">
       <div id="parentChildTabs" class="flex flex-wrap gap-2"></div>
@@ -856,6 +862,11 @@
       <div id="parentFeesBox" class="hidden bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-6 border border-gold-500/20">
         <h4 class="font-display font-semibold text-lg mb-4">💳 Fees & Payments</h4>
         <div id="parentInvoiceList" class="space-y-3 text-sm">Loading…</div>
+      </div>
+
+      <div id="parentExamsBox" class="hidden bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-6 border border-gold-500/20">
+        <h4 class="font-display font-semibold text-lg mb-4">📝 Exams & Results</h4>
+        <div id="parentExamList" class="space-y-3 text-sm">Loading…</div>
       </div>
     </div>
 
@@ -916,6 +927,16 @@
         <p class="text-xs opacity-60 mb-5">Apni class ya kisi ek student ke liye Zoom/Google Meet class schedule karein.</p>
         <div id="teacherLiveClassList" class="space-y-3 text-sm">Loading…</div>
       </div>
+
+      <!-- Teacher's own Exams -->
+      <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-6 border border-gold-500/20 mt-6">
+        <div class="flex justify-between items-center mb-4">
+          <h4 class="font-display font-semibold text-lg">📝 My Exams</h4>
+          <button onclick="openExamModal('teacher')" class="btn-gold px-4 py-2 rounded-lg text-sm font-semibold">+ Schedule Exam</button>
+        </div>
+        <p class="text-xs opacity-60 mb-5">Apni class ya kisi ek student ke liye exam schedule karein aur results enter karein.</p>
+        <div id="teacherExamList" class="space-y-3 text-sm">Loading…</div>
+      </div>
     </div>
     <!-- ---------- ADMIN DASHBOARD ---------- -->
     <div id="portal-admin" class="hidden reveal">
@@ -930,6 +951,7 @@
           <button onclick="switchAdminTab('attendance')" data-admintab="attendance" class="admin-tab w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2.5">🗓️ Attendance</button>
           <button onclick="switchAdminTab('tasks')" data-admintab="tasks" class="admin-tab w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2.5">📋 Tasks</button>
           <button onclick="switchAdminTab('liveclasses')" data-admintab="liveclasses" class="admin-tab w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2.5">🎥 Live Classes</button>
+          <button onclick="switchAdminTab('exams')" data-admintab="exams" class="admin-tab w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2.5">📝 Exams</button>
           <button onclick="switchAdminTab('fees')" data-admintab="fees" class="admin-tab w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2.5">💳 Fees</button>
           <button onclick="switchAdminTab('reports')" data-admintab="reports" class="admin-tab w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2.5">📈 Reports</button>
           <button onclick="switchAdminTab('approvals')" data-admintab="approvals" class="admin-tab w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2.5">✅ User Approvals</button>
@@ -1193,6 +1215,31 @@
                 </tr></thead>
                 <tbody id="admLiveClassesTableBody"><tr><td colspan="6" class="py-6 text-center opacity-60 text-sm">Loading…</td></tr></tbody>
               </table>
+            </div>
+          </div>
+
+          <!-- Exams tab -->
+          <div id="admintab-exams" class="admin-panel hidden space-y-6">
+            <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-6 border border-gold-500/20">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="font-display font-semibold text-lg">📝 Exams</h3>
+                <button onclick="openExamModal('admin')" class="btn-gold px-4 py-2 rounded-lg text-sm font-semibold">+ Schedule Exam</button>
+              </div>
+              <p class="text-xs opacity-60 mb-5">Poori class ke liye ya kisi ek student ke liye exam schedule karein, kisi bhi teacher ko assign kar ke. Note: agar student ki fees pending hain to wo exam nahi de sakega jab tak aap unlock na karein.</p>
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead><tr class="text-left border-b border-gold-500/20 opacity-70">
+                    <th class="py-2 px-4">Title</th><th class="py-2 px-4">For</th><th class="py-2 px-4">Teacher</th><th class="py-2 px-4">Date</th><th class="py-2 px-4">Status</th><th class="py-2 px-4 text-right">Actions</th>
+                  </tr></thead>
+                  <tbody id="admExamsTableBody"><tr><td colspan="6" class="py-6 text-center opacity-60 text-sm">Loading…</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-6 border border-gold-500/20">
+              <h3 class="font-display font-semibold text-lg mb-1">🔓 Exam Unlock Requests</h3>
+              <p class="text-xs opacity-60 mb-5">Jin students ki fees pending hai lekin unhon ne exam access ki request bheji hai, unhe yahan approve ya reject karein.</p>
+              <div id="admExamUnlockList" class="space-y-3 text-sm">Loading…</div>
             </div>
           </div>
 
@@ -1539,6 +1586,73 @@
       </div>
     </div>
 
+    <!-- Schedule Exam modal -->
+    <div id="examModal" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-5 bg-black/50">
+      <div class="bg-fog-50 dark:bg-emerald-950 rounded-2xl p-6 w-full max-w-md border border-gold-500/20 max-h-[90vh] overflow-y-auto">
+        <h4 class="font-display text-lg font-semibold mb-4">Schedule Exam</h4>
+        <form onsubmit="return saveExam(event)" class="space-y-3">
+          <input required id="exTitle" placeholder="Exam Title (e.g. Tajweed Mid-term)" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+          <input id="exSubject" placeholder="Subject (optional)" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+          <textarea id="exDesc" placeholder="Description (optional)" rows="2" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500"></textarea>
+
+          <select id="exTeacher" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+            <option value="">— Select Teacher —</option>
+          </select>
+
+          <select id="exAssignType" onchange="toggleExamAssignType()" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+            <option value="class">Assign to whole Class</option>
+            <option value="student">Assign to one Student</option>
+          </select>
+          <select id="exClass" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+            <option value="">— Select Class —</option>
+          </select>
+          <select id="exStudent" class="hidden w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+            <option value="">— Select Student —</option>
+          </select>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs font-semibold opacity-70">Total Marks</label>
+              <input required id="exTotalMarks" type="number" min="1" value="100" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 mt-1">
+            </div>
+            <div>
+              <label class="text-xs font-semibold opacity-70">Duration (mins)</label>
+              <input id="exDuration" type="number" min="10" step="5" placeholder="optional" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 mt-1">
+            </div>
+          </div>
+          <div>
+            <label class="text-xs font-semibold opacity-70">Exam Date</label>
+            <input required id="exDate" type="date" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 mt-1">
+          </div>
+
+          <div class="flex gap-3 pt-2">
+            <button type="button" onclick="closeExamModal()" class="flex-1 py-2.5 rounded-lg font-semibold text-sm border border-gold-500/40">Cancel</button>
+            <button class="flex-1 btn-gold py-2.5 rounded-lg font-semibold text-sm">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Exam Results Entry modal -->
+    <div id="examResultsModal" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-5 bg-black/50 overflow-y-auto">
+      <div class="bg-fog-50 dark:bg-emerald-950 rounded-2xl p-6 w-full max-w-2xl border border-gold-500/20 my-10">
+        <div class="flex justify-between items-center mb-4">
+          <h4 class="font-display text-lg font-semibold" id="examResultsTitle">Enter Results</h4>
+          <button onclick="closeExamResultsModal()" class="text-sm opacity-60 hover:opacity-100">✕ Close</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead><tr class="text-left border-b border-gold-500/20 opacity-70">
+              <th class="py-2 px-2">Student</th><th class="py-2 px-2">Marks</th><th class="py-2 px-2">Grade</th><th class="py-2 px-2">Remarks</th>
+            </tr></thead>
+            <tbody id="examResultsTableBody"><tr><td colspan="4" class="py-6 text-center opacity-60 text-sm">Loading…</td></tr></tbody>
+          </table>
+        </div>
+        <button onclick="saveExamResults()" class="btn-gold w-full py-2.5 rounded-lg font-semibold text-sm mt-4">💾 Save All Results</button>
+        <p id="examResultsSaveMsg" class="hidden text-sm text-emerald-700 dark:text-emerald-400 text-center mt-2"></p>
+      </div>
+    </div>
+
     <!-- Create Invoice modal -->
     <div id="invoiceModal" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-5 bg-black/50">
       <div class="bg-fog-50 dark:bg-emerald-950 rounded-2xl p-6 w-full max-w-md border border-gold-500/20">
@@ -1554,6 +1668,12 @@
           <select id="invClass" class="hidden w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
             <option value="">— Select Class —</option>
           </select>
+          <div>
+            <label class="text-xs font-semibold opacity-70">Course (optional — auto-fills amount)</label>
+            <select id="invCourse" onchange="onInvoiceCourseChange()" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 mt-1">
+              <option value="">— No course / custom amount —</option>
+            </select>
+          </div>
           <div>
             <label class="text-xs font-semibold opacity-70">Month</label>
             <input required id="invMonth" type="month" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 mt-1">
@@ -2360,6 +2480,7 @@ async function renderPortalForUser(user){
     teacherView.querySelectorAll('.reveal').forEach(el=>el.classList.add('in'));
     loadTeacherStudentList();
     loadTeacherLiveClasses(user.id);
+    loadTeacherExams(user.id);
   } else if(profile.role === 'parent'){
     parentView.classList.remove('hidden');
     parentView.classList.add('in');
@@ -2436,6 +2557,8 @@ async function loadParentChildDetails(studentId){
   document.getElementById('pCertificates').textContent = (certs && certs.length) ? `${certs.length} earned` : 'None yet';
 
   loadParentLiveClasses(studentId);
+  loadParentInvoices(studentId);
+  loadParentExams(studentId);
 }
 
 supabaseClient.auth.onAuthStateChange((event, session) => {
@@ -2496,7 +2619,10 @@ async function loadStudentDashboard(uid){
     await loadStudentHomeworkList(studentId);
     document.getElementById('portal-student-homework').classList.remove('hidden');
     document.getElementById('portal-student-liveclasses').classList.remove('hidden');
+    document.getElementById('portal-student-exams').classList.remove('hidden');
     loadStudentLiveClasses(studentId);
+    loadStudentInvoices(studentId);
+    loadStudentExams(studentId);
   }catch(e){
     setAll('Could not load — please refresh.');
   }
@@ -2657,6 +2783,8 @@ function switchAdminTab(tab){
   if(tab === 'attendance') loadAdminAttendance();
   if(tab === 'tasks') loadAdminTasks();
   if(tab === 'liveclasses') loadAdminLiveClasses();
+  if(tab === 'exams'){ loadAdminExams(); loadAdminExamUnlockRequests(); }
+  if(tab === 'fees'){ loadAdminInvoices(); loadAdminPendingProofs(); }
   if(tab === 'reports') loadAdminReports();
   if(tab === 'settings') loadAcademySettings();
 }
@@ -4067,12 +4195,428 @@ async function loadParentLiveClasses(studentId){
   }).join('');
 }
 
+/* ================= EXAM SYSTEM ================= */
+
+let examModalMode = 'admin'; // 'admin' or 'teacher'
+
+function toggleExamAssignType(){
+  const type = document.getElementById('exAssignType').value;
+  document.getElementById('exClass').classList.toggle('hidden', type !== 'class');
+  document.getElementById('exStudent').classList.toggle('hidden', type !== 'student');
+}
+
+async function openExamModal(mode){
+  examModalMode = mode;
+  document.getElementById('exTitle').value = '';
+  document.getElementById('exSubject').value = '';
+  document.getElementById('exDesc').value = '';
+  document.getElementById('exAssignType').value = 'class';
+  document.getElementById('exTotalMarks').value = 100;
+  document.getElementById('exDuration').value = '';
+  document.getElementById('exDate').value = '';
+
+  if(adminClassesStudentsCache.length===0){
+    const { data: students } = await supabaseClient.from('students').select('*').order('name');
+    adminClassesStudentsCache = students || [];
+  }
+  const classes = [...new Set(adminClassesStudentsCache.map(s => s.class).filter(Boolean))];
+  document.getElementById('exClass').innerHTML = '<option value="">— Select Class —</option>' + classes.map(c => `<option value="${c}">${c}</option>`).join('');
+  document.getElementById('exStudent').innerHTML = '<option value="">— Select Student —</option>' + adminClassesStudentsCache.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+
+  const teacherSel = document.getElementById('exTeacher');
+  if(mode === 'admin'){
+    teacherSel.classList.remove('hidden');
+    teacherSel.required = true;
+    if(adminTeachersCache.length===0){
+      const { data: teachers } = await supabaseClient.from('users').select('*').eq('role','teacher').eq('approved', true);
+      adminTeachersCache = teachers || [];
+    }
+    teacherSel.innerHTML = '<option value="">— Select Teacher —</option>' + adminTeachersCache.map(t => `<option value="${t.id}">${t.name}</option>`).join('');
+  } else {
+    teacherSel.classList.add('hidden');
+    teacherSel.required = false;
+  }
+
+  toggleExamAssignType();
+  document.getElementById('examModal').classList.remove('hidden');
+}
+
+function closeExamModal(){
+  document.getElementById('examModal').classList.add('hidden');
+}
+
+async function saveExam(e){
+  e.preventDefault();
+  const type = document.getElementById('exAssignType').value;
+  let teacherId = null;
+  if(examModalMode === 'admin'){
+    teacherId = document.getElementById('exTeacher').value || null;
+    if(!teacherId){ alert('Please select a teacher.'); return false; }
+  } else {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    teacherId = user.id;
+  }
+  if(type === 'class' && !document.getElementById('exClass').value){ alert('Please select a class.'); return false; }
+  if(type === 'student' && !document.getElementById('exStudent').value){ alert('Please select a student.'); return false; }
+
+  const payload = {
+    title: document.getElementById('exTitle').value.trim(),
+    subject: document.getElementById('exSubject').value.trim() || null,
+    description: document.getElementById('exDesc').value.trim() || null,
+    teacher_id: teacherId,
+    assign_type: type,
+    class: type === 'class' ? document.getElementById('exClass').value : null,
+    student_id: type === 'student' ? document.getElementById('exStudent').value : null,
+    total_marks: Number(document.getElementById('exTotalMarks').value) || 100,
+    duration_minutes: Number(document.getElementById('exDuration').value) || null,
+    exam_date: document.getElementById('exDate').value,
+    status: 'scheduled'
+  };
+  const { error } = await supabaseClient.from('exams').insert(payload);
+  if(error){ alert('Could not schedule exam: ' + error.message); return false; }
+  closeExamModal();
+  if(examModalMode === 'admin'){
+    loadAdminExams();
+  } else {
+    loadTeacherExams(teacherId);
+  }
+  return false;
+}
+
+let adminExamsCache = [];
+
+async function loadAdminExams(){
+  if(adminClassesStudentsCache.length===0){
+    const { data: students } = await supabaseClient.from('students').select('*').order('name');
+    adminClassesStudentsCache = students || [];
+  }
+  if(adminTeachersCache.length===0){
+    const { data: teachers } = await supabaseClient.from('users').select('*').eq('role','teacher').eq('approved', true);
+    adminTeachersCache = teachers || [];
+  }
+  const tbody = document.getElementById('admExamsTableBody');
+  tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center opacity-60 text-sm">Loading…</td></tr>';
+  const { data: rows, error } = await supabaseClient.from('exams').select('*').order('exam_date', { ascending: true });
+  if(error){ tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-red-500 text-sm">Could not load exams.</td></tr>'; return; }
+  adminExamsCache = rows || [];
+  if(adminExamsCache.length===0){ tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center opacity-60 text-sm">No exams scheduled yet — click "Schedule Exam" to create one.</td></tr>'; return; }
+  tbody.innerHTML = adminExamsCache.map(ex => {
+    const forWhom = ex.student_id
+      ? ((adminClassesStudentsCache.find(s => s.id === ex.student_id) || {}).name || 'Student')
+      : (ex.class ? 'Class: ' + ex.class : 'All');
+    const teacherName = (adminTeachersCache.find(t => t.id === ex.teacher_id) || {}).name || '—';
+    const statusColors = {
+      scheduled: 'bg-gold-500/15 text-gold-700 dark:text-gold-400',
+      completed: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-400',
+      cancelled: 'bg-red-500/15 text-red-600 dark:text-red-400'
+    };
+    const statusBadge = `<span class="px-2.5 py-1 rounded-full text-xs font-semibold ${statusColors[ex.status] || ''}">${ex.status}</span>`;
+    return `<tr class="border-b border-gold-500/10 last:border-0">
+      <td class="py-3 px-4 font-medium">${ex.title}</td>
+      <td class="py-3 px-4 opacity-80">${forWhom}</td>
+      <td class="py-3 px-4 opacity-80">${teacherName}</td>
+      <td class="py-3 px-4 opacity-80">${ex.exam_date || '—'}</td>
+      <td class="py-3 px-4">${statusBadge}</td>
+      <td class="py-3 px-4 text-right space-x-2 whitespace-nowrap">
+        <button onclick="openExamResultsModal('${ex.id}')" title="Enter/View Results" class="hover:text-gold-500">📝</button>
+        <button onclick="cycleExamStatus('${ex.id}','${ex.status}')" title="Change status" class="hover:text-gold-500">🔁</button>
+        <button onclick="deleteExam('${ex.id}')" title="Delete" class="hover:text-red-500">🗑️</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function cycleExamStatus(id, currentStatus){
+  const order = ['scheduled','completed','cancelled'];
+  const next = order[(order.indexOf(currentStatus) + 1) % order.length];
+  const { error } = await supabaseClient.from('exams').update({ status: next }).eq('id', id);
+  if(error){ alert('Could not update: ' + error.message); return; }
+  loadAdminExams();
+}
+
+async function deleteExam(id){
+  if(!confirm('Delete this exam? This will also delete any entered results.')) return;
+  const { error } = await supabaseClient.from('exams').delete().eq('id', id);
+  if(error){ alert('Could not delete: ' + error.message); return; }
+  loadAdminExams();
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  if(user) loadTeacherExams(user.id);
+}
+
+/* ---- Exam unlock requests (admin) ---- */
+
+async function loadAdminExamUnlockRequests(){
+  const box = document.getElementById('admExamUnlockList');
+  if(!box) return;
+  box.innerHTML = 'Loading…';
+  if(adminClassesStudentsCache.length===0){
+    const { data: students } = await supabaseClient.from('students').select('*').order('name');
+    adminClassesStudentsCache = students || [];
+  }
+  const { data: rows, error } = await supabaseClient.from('exam_unlock_requests').select('*').eq('status', 'pending').order('requested_at', { ascending: false });
+  if(error){ box.innerHTML = '<p class="opacity-60">Could not load requests.</p>'; return; }
+  if(!rows || rows.length===0){ box.innerHTML = '<p class="opacity-60">No pending unlock requests.</p>'; return; }
+  const examTitleOf = (id) => (adminExamsCache.find(e => e.id === id) || {}).title || 'Exam';
+  box.innerHTML = rows.map(r => {
+    const studentName = (adminClassesStudentsCache.find(s => s.id === r.student_id) || {}).name || 'Unknown';
+    return `<div class="p-4 rounded-xl bg-fog-50 dark:bg-emerald-950 border border-gold-500/10 flex flex-wrap justify-between items-center gap-3">
+      <div>
+        <p class="font-semibold">${studentName} — ${examTitleOf(r.exam_id)}</p>
+        <p class="text-xs opacity-60">Requested ${r.requested_at ? new Date(r.requested_at).toLocaleString() : ''}${r.note ? ' · Note: ' + r.note : ''}</p>
+      </div>
+      <div class="flex gap-2">
+        <button onclick="respondExamUnlock('${r.id}','approved')" class="btn-gold px-3 py-1.5 rounded-lg text-xs font-semibold">✅ Approve</button>
+        <button onclick="respondExamUnlock('${r.id}','rejected')" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-red-500/40 text-red-600 dark:text-red-400">✕ Reject</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function respondExamUnlock(requestId, decision){
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  const { error } = await supabaseClient.from('exam_unlock_requests').update({
+    status: decision, responded_by: user.id, responded_at: new Date().toISOString()
+  }).eq('id', requestId);
+  if(error){ alert('Could not update: ' + error.message); return; }
+  showToast(decision === 'approved' ? 'Request approved ✓' : 'Request rejected');
+  loadAdminExamUnlockRequests();
+}
+
+async function loadTeacherExams(teacherId){
+  const box = document.getElementById('teacherExamList');
+  if(!box) return;
+  box.innerHTML = 'Loading…';
+  const { data: rows, error } = await supabaseClient.from('exams').select('*').eq('teacher_id', teacherId).order('exam_date', { ascending: true });
+  if(error){ box.innerHTML = '<p class="opacity-60">Could not load exams.</p>'; return; }
+  if(!rows || rows.length===0){ box.innerHTML = '<p class="opacity-60">No exams scheduled yet.</p>'; return; }
+  box.innerHTML = rows.map(ex => {
+    const forWhom = ex.class ? 'Class: ' + ex.class : (ex.student_id ? 'One Student' : 'All');
+    return `<div class="p-4 rounded-xl bg-fog-50 dark:bg-emerald-950 border border-gold-500/10 flex flex-wrap justify-between items-center gap-2">
+      <div>
+        <p class="font-semibold">${ex.title}${ex.subject ? ' — ' + ex.subject : ''}</p>
+        <p class="text-xs opacity-60">${forWhom} · ${ex.exam_date || '—'} · ${ex.total_marks} marks · ${ex.status}</p>
+      </div>
+      <div class="flex gap-2 items-center">
+        <button onclick="openExamResultsModal('${ex.id}')" class="btn-gold px-3 py-1.5 rounded-lg text-xs font-semibold">📝 Results</button>
+        <button onclick="deleteExam('${ex.id}')" title="Delete" class="text-xs px-2 hover:text-red-500">🗑️</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function loadStudentExams(studentId){
+  const box = document.getElementById('studentExamList');
+  box.innerHTML = 'Loading…';
+  const { data: myClass } = await supabaseClient.from('students').select('class').eq('id', studentId).single();
+  const classFilter = myClass && myClass.class ? myClass.class : '__none__';
+  const [{ data: rows, error }, { data: results }, { data: invoices }, { data: unlocks }] = await Promise.all([
+    supabaseClient.from('exams').select('*').or(`student_id.eq.${studentId},class.eq.${classFilter}`).order('exam_date', { ascending: false }),
+    supabaseClient.from('exam_results').select('*').eq('student_id', studentId),
+    supabaseClient.from('fee_invoices').select('status').eq('student_id', studentId),
+    supabaseClient.from('exam_unlock_requests').select('*').eq('student_id', studentId)
+  ]);
+  if(error){ box.innerHTML = '<p class="opacity-60">Could not load exams.</p>'; return; }
+  if(!rows || rows.length===0){ box.innerHTML = '<p class="opacity-60">No exams yet.</p>'; return; }
+
+  const hasUnpaidFees = (invoices || []).some(i => i.status !== 'paid');
+
+  box.innerHTML = rows.map(ex => {
+    const result = (results || []).find(r => r.exam_id === ex.id);
+    const unlockReq = (unlocks || []).find(u => u.exam_id === ex.id);
+    const isUnlocked = !hasUnpaidFees || (unlockReq && unlockReq.status === 'approved');
+
+    if(!isUnlocked){
+      let actionHtml = `<button onclick="requestExamUnlock('${ex.id}')" class="btn-gold px-3 py-1.5 rounded-lg text-xs font-semibold">Request Approval</button>`;
+      let statusNote = '';
+      if(unlockReq && unlockReq.status === 'pending'){
+        actionHtml = '<span class="text-xs opacity-60">⏳ Waiting for admin approval</span>';
+      } else if(unlockReq && unlockReq.status === 'rejected'){
+        statusNote = '<p class="text-xs text-red-500 mt-1">Previous request rejected. You may request again.</p>';
+      }
+      return `<div class="p-4 rounded-xl bg-fog-50 dark:bg-emerald-950 border border-gold-500/10 flex flex-wrap justify-between items-center gap-2 opacity-90">
+        <div>
+          <p class="font-semibold">🔒 ${ex.title}${ex.subject ? ' — ' + ex.subject : ''}</p>
+          <p class="text-xs opacity-60">${ex.exam_date || '—'} · Fees pending — clear dues to unlock this exam.</p>
+          ${statusNote}
+        </div>
+        ${actionHtml}
+      </div>`;
+    }
+
+    let resultHtml = '<span class="text-xs opacity-60">Result not published yet</span>';
+    if(result && result.marks_obtained != null){
+      resultHtml = `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">${result.marks_obtained}/${ex.total_marks}${result.grade ? ' · ' + result.grade : ''}</span>`;
+    }
+    return `<div class="p-4 rounded-xl bg-fog-50 dark:bg-emerald-950 border border-gold-500/10 flex flex-wrap justify-between items-center gap-2">
+      <div>
+        <p class="font-semibold">${ex.title}${ex.subject ? ' — ' + ex.subject : ''}${unlockReq && unlockReq.status === 'approved' ? ' <span class="text-xs text-emerald-600 dark:text-emerald-400">(🔓 unlocked)</span>' : ''}</p>
+        <p class="text-xs opacity-60">${ex.exam_date || '—'} · ${ex.total_marks} marks · ${ex.status}</p>
+        ${result && result.remarks ? `<p class="text-xs opacity-70 mt-1">Remarks: ${result.remarks}</p>` : ''}
+      </div>
+      ${resultHtml}
+    </div>`;
+  }).join('');
+}
+
+async function requestExamUnlock(examId){
+  const studentId = window.__myStudentId;
+  const note = prompt('Admin ke liye koi note (optional):') || null;
+  const { error } = await supabaseClient.from('exam_unlock_requests').insert({
+    exam_id: examId, student_id: studentId, status: 'pending', note
+  });
+  if(error){
+    if(error.code === '23505'){ alert('Aap pehle hi request bhej chuke hain.'); }
+    else { alert('Could not send request: ' + error.message); }
+    return;
+  }
+  showToast('Request bhej di gayi — admin approve karega to exam unlock ho jayega.');
+  loadStudentExams(studentId);
+}
+
+async function loadParentExams(studentId){
+  const wrap = document.getElementById('parentExamsBox');
+  const box = document.getElementById('parentExamList');
+  wrap.classList.remove('hidden');
+  box.innerHTML = 'Loading…';
+  const { data: myClass } = await supabaseClient.from('students').select('class').eq('id', studentId).single();
+  const classFilter = myClass && myClass.class ? myClass.class : '__none__';
+  const [{ data: rows, error }, { data: results }, { data: invoices }, { data: unlocks }] = await Promise.all([
+    supabaseClient.from('exams').select('*').or(`student_id.eq.${studentId},class.eq.${classFilter}`).order('exam_date', { ascending: false }),
+    supabaseClient.from('exam_results').select('*').eq('student_id', studentId),
+    supabaseClient.from('fee_invoices').select('status').eq('student_id', studentId),
+    supabaseClient.from('exam_unlock_requests').select('*').eq('student_id', studentId)
+  ]);
+  if(error){ box.innerHTML = '<p class="opacity-60">Could not load exams.</p>'; return; }
+  if(!rows || rows.length===0){ box.innerHTML = '<p class="opacity-60">No exams yet.</p>'; return; }
+
+  const hasUnpaidFees = (invoices || []).some(i => i.status !== 'paid');
+
+  box.innerHTML = rows.map(ex => {
+    const result = (results || []).find(r => r.exam_id === ex.id);
+    const unlockReq = (unlocks || []).find(u => u.exam_id === ex.id);
+    const isUnlocked = !hasUnpaidFees || (unlockReq && unlockReq.status === 'approved');
+
+    if(!isUnlocked){
+      let note = 'Fees pending — exam locked.';
+      if(unlockReq && unlockReq.status === 'pending') note = 'Fees pending — unlock request sent, waiting for admin.';
+      if(unlockReq && unlockReq.status === 'rejected') note = 'Fees pending — unlock request was rejected.';
+      return `<div class="p-4 rounded-xl bg-fog-50 dark:bg-emerald-950 border border-gold-500/10">
+        <p class="font-semibold">🔒 ${ex.title}${ex.subject ? ' — ' + ex.subject : ''}</p>
+        <p class="text-xs opacity-60">${ex.exam_date || '—'} · ${note}</p>
+      </div>`;
+    }
+
+    let resultHtml = '<span class="text-xs opacity-60">Not published yet</span>';
+    if(result && result.marks_obtained != null){
+      resultHtml = `<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">${result.marks_obtained}/${ex.total_marks}${result.grade ? ' · ' + result.grade : ''}</span>`;
+    }
+    return `<div class="p-4 rounded-xl bg-fog-50 dark:bg-emerald-950 border border-gold-500/10 flex flex-wrap justify-between items-center gap-2">
+      <div>
+        <p class="font-semibold">${ex.title}${ex.subject ? ' — ' + ex.subject : ''}</p>
+        <p class="text-xs opacity-60">${ex.exam_date || '—'} · ${ex.total_marks} marks</p>
+        ${result && result.remarks ? `<p class="text-xs opacity-70 mt-1">Remarks: ${result.remarks}</p>` : ''}
+      </div>
+      ${resultHtml}
+    </div>`;
+  }).join('');
+}
+
+/* ---- Results entry (teacher/admin) ---- */
+
+let currentExamResultsExamId = null;
+let currentExamResultsStudents = [];
+
+async function openExamResultsModal(examId){
+  currentExamResultsExamId = examId;
+  document.getElementById('examResultsModal').classList.remove('hidden');
+  document.getElementById('examResultsTableBody').innerHTML = '<tr><td colspan="4" class="py-6 text-center opacity-60 text-sm">Loading…</td></tr>';
+  document.getElementById('examResultsSaveMsg').classList.add('hidden');
+
+  const { data: exam, error: exErr } = await supabaseClient.from('exams').select('*').eq('id', examId).single();
+  if(exErr || !exam){ document.getElementById('examResultsTableBody').innerHTML = '<tr><td colspan="4" class="py-6 text-center text-red-500 text-sm">Could not load exam.</td></tr>'; return; }
+  document.getElementById('examResultsTitle').textContent = 'Enter Results — ' + exam.title;
+
+  if(adminClassesStudentsCache.length===0){
+    const { data: students } = await supabaseClient.from('students').select('*').order('name');
+    adminClassesStudentsCache = students || [];
+  }
+  currentExamResultsStudents = exam.student_id
+    ? adminClassesStudentsCache.filter(s => s.id === exam.student_id)
+    : adminClassesStudentsCache.filter(s => s.class === exam.class);
+
+  const { data: results } = await supabaseClient.from('exam_results').select('*').eq('exam_id', examId);
+  const resultsByStudent = {};
+  (results || []).forEach(r => resultsByStudent[r.student_id] = r);
+
+  if(currentExamResultsStudents.length===0){
+    document.getElementById('examResultsTableBody').innerHTML = '<tr><td colspan="4" class="py-6 text-center opacity-60 text-sm">No students found for this exam.</td></tr>';
+    return;
+  }
+
+  document.getElementById('examResultsTableBody').innerHTML = currentExamResultsStudents.map(s => {
+    const r = resultsByStudent[s.id] || {};
+    return `<tr class="border-b border-gold-500/10 last:border-0" data-student-id="${s.id}">
+      <td class="py-2 px-2 font-medium">${s.name}</td>
+      <td class="py-2 px-2"><input type="number" min="0" max="${exam.total_marks}" class="ex-marks w-20 px-2 py-1.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30" value="${r.marks_obtained ?? ''}"></td>
+      <td class="py-2 px-2"><input type="text" placeholder="A/B/C…" class="ex-grade w-20 px-2 py-1.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30" value="${r.grade || ''}"></td>
+      <td class="py-2 px-2"><input type="text" placeholder="optional" class="ex-remarks w-full px-2 py-1.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30" value="${r.remarks || ''}"></td>
+    </tr>`;
+  }).join('');
+}
+
+function closeExamResultsModal(){
+  document.getElementById('examResultsModal').classList.add('hidden');
+  currentExamResultsExamId = null;
+}
+
+async function saveExamResults(){
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  const rows = document.querySelectorAll('#examResultsTableBody tr[data-student-id]');
+  const payload = [];
+  rows.forEach(tr => {
+    const studentId = tr.dataset.studentId;
+    const marks = tr.querySelector('.ex-marks').value;
+    const grade = tr.querySelector('.ex-grade').value.trim();
+    const remarks = tr.querySelector('.ex-remarks').value.trim();
+    if(marks === '' && !grade && !remarks) return; // skip untouched rows
+    payload.push({
+      exam_id: currentExamResultsExamId,
+      student_id: studentId,
+      marks_obtained: marks === '' ? null : Number(marks),
+      grade: grade || null,
+      remarks: remarks || null,
+      graded_by: user.id,
+      graded_at: new Date().toISOString()
+    });
+  });
+  if(payload.length===0){ alert('Please enter at least one result.'); return; }
+  const { error } = await supabaseClient.from('exam_results').upsert(payload, { onConflict: 'exam_id,student_id' });
+  if(error){ alert('Could not save results: ' + error.message); return; }
+  const msg = document.getElementById('examResultsSaveMsg');
+  msg.textContent = '✅ Results saved.';
+  msg.classList.remove('hidden');
+  showToast('Results saved ✓');
+  loadAdminExams();
+  const { data: { user: u2 } } = await supabaseClient.auth.getUser();
+  if(u2) loadTeacherExams(u2.id);
+}
+
 /* ================= FEES & PAYMENTS (EasyPaisa manual transfer) ================= */
 
 function toggleInvoiceAssignType(){
   const type = document.getElementById('invAssignType').value;
   document.getElementById('invStudent').classList.toggle('hidden', type !== 'student');
   document.getElementById('invClass').classList.toggle('hidden', type !== 'class');
+}
+
+let invoiceCoursesCache = [];
+
+function onInvoiceCourseChange(){
+  const courseId = document.getElementById('invCourse').value;
+  const course = invoiceCoursesCache.find(c => c.id === courseId);
+  if(course && course.fee){
+    document.getElementById('invAmount').value = course.fee;
+  }
 }
 
 async function openInvoiceModal(){
@@ -4088,6 +4632,13 @@ async function openInvoiceModal(){
   document.getElementById('invStudent').innerHTML = '<option value="">— Select Student —</option>' + adminClassesStudentsCache.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
   const classes = [...new Set(adminClassesStudentsCache.map(s => s.class).filter(Boolean))];
   document.getElementById('invClass').innerHTML = '<option value="">— Select Class —</option>' + classes.map(c => `<option value="${c}">${c}</option>`).join('');
+
+  if(invoiceCoursesCache.length===0){
+    const { data: courses } = await supabaseClient.from('courses').select('id, title, fee').order('title');
+    invoiceCoursesCache = courses || [];
+  }
+  document.getElementById('invCourse').innerHTML = '<option value="">— No course / custom amount —</option>' +
+    invoiceCoursesCache.map(c => `<option value="${c.id}">${c.title}${c.fee ? ' — ' + fmtPKR(c.fee) : ''}</option>`).join('');
 
   toggleInvoiceAssignType();
   document.getElementById('invoiceModal').classList.remove('hidden');
