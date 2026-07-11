@@ -170,6 +170,20 @@
   .search-tab-btn[aria-selected="true"]{ color:#0B6E4F; }
   .dark .search-tab-btn[aria-selected="true"]{ color:#e3c568; }
   .search-tab-btn[aria-selected="true"]::after{ content:''; position:absolute; left:.5rem; right:.5rem; bottom:-2px; height:2px; background:linear-gradient(90deg,#D4AF37,#e3c568); border-radius:2px; }
+  .card-action-btn{ display:inline-flex; align-items:center; justify-content:center; width:2rem; height:2rem; border-radius:9999px; border:1px solid rgba(212,175,55,.3); color:#0B6E4F; background:transparent; cursor:pointer; transition:all .2s ease; }
+  .dark .card-action-btn{ color:#e3c568; }
+  .card-action-btn:hover{ background:rgba(212,175,55,.12); }
+  .bookmark-btn .bm-fill{ display:none; }
+  .bookmark-btn .bm-outline{ display:block; }
+  .bookmark-btn.is-bookmarked{ background:linear-gradient(135deg,#e3c568,#D4AF37); border-color:transparent; color:#031f16; }
+  .bookmark-btn.is-bookmarked .bm-fill{ display:block; }
+  .bookmark-btn.is-bookmarked .bm-outline{ display:none; }
+  .recent-chip{ font-size:.72rem; padding:.25rem .7rem; border-radius:9999px; border:1px solid rgba(212,175,55,.25); background:transparent; opacity:.75; cursor:pointer; transition:all .2s ease; }
+  .recent-chip:hover{ opacity:1; background:rgba(212,175,55,.12); }
+  .name-card{ background:#fff; border:1px solid rgba(212,175,55,.22); border-radius:1rem; padding:1.1rem; text-align:center; transition:all .25s ease; }
+  .dark .name-card{ background:rgba(255,255,255,.03); border-color:rgba(212,175,55,.16); }
+  .name-card:hover{ border-color:rgba(212,175,55,.5); transform:translateY(-2px); box-shadow:0 12px 28px -14px rgba(3,31,22,.2); }
+  .name-card .name-num{ font-size:.65rem; font-weight:700; color:#D4AF37; }
 </style>
 </head>
 
@@ -612,39 +626,66 @@
     <div id="tool-search" class="reveal bg-fog-100 dark:bg-emerald-900/60 rounded-2xl border border-gold-500/20 lg:col-span-2 overflow-hidden">
       <div class="bg-emerald-900 dark:bg-emerald-950 islamic-pattern-dense px-6 md:px-8 py-8 text-center">
         <h3 class="font-display text-xl md:text-2xl font-semibold text-fog-50">Quran &amp; Hadith Search</h3>
-        <p class="font-urdu text-fog-100/80 text-sm mt-1" dir="rtl">قرآن و حدیث تلاش کریں</p>
+        <p class="text-fog-100/80 text-sm mt-1">Search the Quran &amp; Hadith in Arabic</p>
         <div role="tablist" aria-label="Search tool" class="mt-5 inline-flex bg-fog-50/10 border border-gold-500/25 rounded-full p-1 gap-1">
           <button id="tabBtnQuran" role="tab" aria-selected="true" aria-controls="panelQuran" class="search-tab-btn px-5 py-2 rounded-full text-sm font-semibold text-fog-50" onclick="switchSearchTab('quran')">📖 Quran</button>
           <button id="tabBtnHadith" role="tab" aria-selected="false" aria-controls="panelHadith" class="search-tab-btn px-5 py-2 rounded-full text-sm font-semibold text-fog-50" onclick="switchSearchTab('hadith')">📜 Hadith</button>
+          <button id="tabBtnSaved" role="tab" aria-selected="false" aria-controls="panelSaved" class="search-tab-btn px-5 py-2 rounded-full text-sm font-semibold text-fog-50" onclick="switchSearchTab('saved')">🔖 Saved</button>
         </div>
       </div>
 
       <div class="p-6 md:p-8">
         <!-- Quran panel -->
         <section id="panelQuran" role="tabpanel" aria-labelledby="tabBtnQuran" class="search-tab-panel active">
-          <p class="text-xs opacity-60 mb-4">Koi lafz ya jumla Urdu ya Arabic mein likhein — us se milti julti ayat, uski surah/ayat number, Arabic text, Urdu tarjuma aur تفسیر sath mil jayega.</p>
+          <p class="text-xs opacity-60 mb-4">Type an Arabic word or Ayah — matching verses with Surah/Ayah number, Arabic text, Urdu translation, and Tafseer will be shown.</p>
           <form onsubmit="return runQuranSearch(event)" class="flex flex-col sm:flex-row gap-2">
-            <input id="quranQuery" required dir="auto" autocomplete="off" placeholder="مثلاً: صبر، رحمت — یا وَ هُوَ الۡعَلِىُّ الۡعَظِيۡمُ" class="flex-1 px-4 py-3 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500 font-urdu">
-            <button class="btn-gold px-5 py-3 rounded-lg font-semibold shrink-0">تلاش کریں</button>
+            <input id="quranQuery" required dir="rtl" lang="ar" autocomplete="off" placeholder="e.g. صبر، رحمت — or وَ هُوَ الۡعَلِىُّ الۡعَظِيۡمُ" class="flex-1 px-4 py-3 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500 font-arabic text-lg">
+            <button class="btn-gold px-5 py-3 rounded-lg font-semibold shrink-0">Search</button>
           </form>
-          <p id="resultCount" class="text-xs opacity-60 mt-2 font-urdu" dir="rtl"></p>
+          <div id="quranRecent" class="flex flex-wrap items-center gap-1.5 mt-2"></div>
+          <div class="flex items-center gap-3 my-4">
+            <span class="flex-1 h-px bg-gold-500/20"></span>
+            <span class="text-[11px] uppercase tracking-wide opacity-50">or browse by Surah &amp; Ayah</span>
+            <span class="flex-1 h-px bg-gold-500/20"></span>
+          </div>
+          <form onsubmit="return viewSelectedRange(event)" class="flex flex-col sm:flex-row gap-2">
+            <select id="surahSelect" onchange="document.getElementById('paraSelect').value='';" onfocus="loadSurahList()" class="flex-1 px-4 py-3 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500 text-sm">
+              <option value="">Surah</option>
+            </select>
+            <select id="paraSelect" onchange="document.getElementById('surahSelect').value='';" class="flex-1 px-4 py-3 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500 text-sm">
+              <option value="">Para</option>
+            </select>
+            <button class="btn-gold px-5 py-3 rounded-lg font-semibold shrink-0">Go</button>
+          </form>
+
+          <p id="resultCount" class="text-xs opacity-60 mt-2"></p>
           <div id="quranResults" class="mt-4 space-y-4 max-h-[36rem] overflow-y-auto text-sm">
-            <div class="loading-row"><span class="text-3xl">📖</span><p class="text-sm opacity-60 font-urdu text-center max-w-sm" dir="rtl">تلاش شروع کرنے کے لیے اوپر کوئی لفظ یا آیت درج کریں۔</p></div>
+            <div class="loading-row"><span class="text-3xl">📖</span><p class="text-sm opacity-60 text-center max-w-sm">Enter an Arabic word or Ayah above to start searching.</p></div>
           </div>
         </section>
 
         <!-- Hadith panel -->
         <section id="panelHadith" role="tabpanel" aria-labelledby="tabBtnHadith" class="search-tab-panel">
-          <p class="text-xs opacity-60 mb-4">Kitab chunein (ya "تمام کتب") aur koi lafz ya jumla likhein — Arabic text, poora Urdu tarjuma, aur hawala (kitab، باب، حدیث نمبر) sath mil jayega.</p>
+          <p class="text-xs opacity-60 mb-4">Choose a book (or "All Books") and type an Arabic word or phrase — Arabic text, full Urdu translation, and the reference (book, chapter, Hadith number) will be shown.</p>
           <form onsubmit="return runHadithSearch(event)">
-            <input id="hadithQuery" required dir="auto" autocomplete="off" placeholder="مثلاً: نیت — یا انما الاعمال بالنيات" class="w-full px-4 py-3 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500 font-urdu">
+            <input id="hadithQuery" required dir="rtl" lang="ar" autocomplete="off" placeholder="e.g. نیت — or انما الاعمال بالنيات" class="w-full px-4 py-3 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500 font-arabic text-lg">
             <div id="bookChips" class="flex flex-wrap gap-2 mt-3"></div>
-            <button class="btn-gold px-5 py-3 rounded-lg font-semibold mt-3 w-full sm:w-auto">تلاش کریں</button>
-            <p class="text-[11px] opacity-50 mt-2">"تمام کتب" (All Books) search fetches every collection and may take a few extra seconds the first time.</p>
+            <label class="flex items-center gap-2 text-xs mt-3"><input id="sahihOnlyFilter" type="checkbox"> Show Sahih (authentic) graded Hadith only</label>
+            <button class="btn-gold px-5 py-3 rounded-lg font-semibold mt-3 w-full sm:w-auto">Search</button>
+            <p class="text-[11px] opacity-50 mt-2">"All Books" search fetches every collection and may take a few extra seconds the first time.</p>
           </form>
-          <p id="hadithResultCount" class="text-xs opacity-60 mt-2 font-urdu" dir="rtl"></p>
+          <div id="hadithRecent" class="flex flex-wrap items-center gap-1.5 mt-2"></div>
+          <p id="hadithResultCount" class="text-xs opacity-60 mt-2"></p>
           <div id="hadithResults" class="mt-4 space-y-4 max-h-[36rem] overflow-y-auto text-sm">
-            <div class="loading-row"><span class="text-3xl">📜</span><p class="text-sm opacity-60 font-urdu text-center max-w-sm" dir="rtl">تلاش شروع کرنے کے لیے اوپر کوئی لفظ یا جملہ درج کریں۔</p></div>
+            <div class="loading-row"><span class="text-3xl">📜</span><p class="text-sm opacity-60 text-center max-w-sm">Enter an Arabic word or phrase above to start searching.</p></div>
+          </div>
+        </section>
+
+        <!-- Saved panel -->
+        <section id="panelSaved" role="tabpanel" aria-labelledby="tabBtnSaved" class="search-tab-panel">
+          <p class="text-xs opacity-60 mb-4">Ayahs and Hadith you've bookmarked, saved on this device.</p>
+          <div id="savedResults" class="space-y-4 max-h-[42rem] overflow-y-auto text-sm">
+            <div class="loading-row"><span class="text-3xl">🔖</span><p class="text-sm opacity-60 text-center max-w-sm">No saved Ayahs or Hadith yet.</p></div>
           </div>
         </section>
       </div>
@@ -2285,7 +2326,10 @@ function testimonialCard(t){
 function renderTestimonials(){ document.getElementById('homeTestimonials').innerHTML = testimonials.slice(0,3).map(testimonialCard).join(''); }
 
 /* ---------------- COURSE / BLOG DETAIL ---------------- */
-function showCourseDetail(i){
+let lastCourseIndex = null;
+let lastBlogIndex = null;
+
+function showCourseDetail(i, historyMode){
   const c = courses[i];
   if(!c) return;
   document.getElementById('courseDetailHero').innerHTML = `
@@ -2320,10 +2364,11 @@ function showCourseDetail(i){
         <span>${item}</span>
       </li>`).join('')}
     </ul>`;
-  navigate('course-detail');
+  lastCourseIndex = i;
+  navigate('course-detail', historyMode);
 }
 
-function showBlogDetail(i){
+function showBlogDetail(i, historyMode){
   const b = blog[i];
   if(!b) return;
   const dateStr = b.date ? new Date(b.date).toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}) : '';
@@ -2333,21 +2378,40 @@ function showBlogDetail(i){
     <p class="text-fog-100/70 text-sm mt-5">${b.author ? b.author : ''}${b.author && dateStr ? ' · ' : ''}${dateStr}</p>`;
   const paras = (b.content && b.content.length ? b.content : [b.desc]).map(p=>`<p class="text-sm md:text-base opacity-80 leading-relaxed mb-5">${p}</p>`).join('');
   document.getElementById('blogDetailBody').innerHTML = paras;
-  navigate('blog-detail');
+  lastBlogIndex = i;
+  navigate('blog-detail', historyMode);
 }
 
 /* ---------------- NAVIGATION ---------------- */
-function navigate(id){
+function navigate(id, historyMode){
+  historyMode = historyMode || 'push';
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   document.querySelectorAll('.navlink').forEach(n=>n.classList.toggle('active', n.dataset.nav===id));
   window.scrollTo({top:0,behavior:'smooth'});
-  history.replaceState(null,'','#'+id);
+  if(historyMode === 'push') history.pushState({page:id}, '', '#'+id);
+  else if(historyMode === 'replace') history.replaceState({page:id}, '', '#'+id);
   document.getElementById('mobileMenu').classList.add('hidden');
   const menuBtn = document.querySelector('[aria-controls="mobileMenu"]');
   if(menuBtn) menuBtn.setAttribute('aria-expanded','false');
   observeReveals();
 }
+
+// Browser back/forward button support: the URL hash is already updated by the
+// browser when this fires, so we just re-render the matching page without
+// touching history again (avoids creating a redirect loop).
+window.addEventListener('popstate', function(){
+  const id = (location.hash||'#home').replace('#','');
+  if(id === 'course-detail' && lastCourseIndex !== null){
+    showCourseDetail(lastCourseIndex, 'none');
+  } else if(id === 'blog-detail' && lastBlogIndex !== null){
+    showBlogDetail(lastBlogIndex, 'none');
+  } else if(document.getElementById('page-'+id)){
+    navigate(id, 'none');
+  } else {
+    navigate('home', 'none');
+  }
+});
 function toggleMobileMenu(){
   const menu = document.getElementById('mobileMenu');
   menu.classList.toggle('hidden');
@@ -5258,11 +5322,36 @@ function navigateToTool(tab){
 }
 
 function switchSearchTab(name){
-  const isQuran = name === 'quran';
-  document.getElementById('panelQuran').classList.toggle('active', isQuran);
-  document.getElementById('panelHadith').classList.toggle('active', !isQuran);
-  document.getElementById('tabBtnQuran').setAttribute('aria-selected', String(isQuran));
-  document.getElementById('tabBtnHadith').setAttribute('aria-selected', String(!isQuran));
+  document.getElementById('panelQuran').classList.toggle('active', name === 'quran');
+  document.getElementById('panelHadith').classList.toggle('active', name === 'hadith');
+  document.getElementById('panelSaved').classList.toggle('active', name === 'saved');
+  document.getElementById('tabBtnQuran').setAttribute('aria-selected', String(name === 'quran'));
+  document.getElementById('tabBtnHadith').setAttribute('aria-selected', String(name === 'hadith'));
+  document.getElementById('tabBtnSaved').setAttribute('aria-selected', String(name === 'saved'));
+  if(name === 'saved') renderSavedPanel();
+}
+
+function renderSavedPanel(){
+  const box = document.getElementById('savedResults');
+  if(!box) return;
+  const quranSaved = getBookmarks('quran');
+  const hadithSaved = getBookmarks('hadith');
+  if(!quranSaved.length && !hadithSaved.length){
+    box.innerHTML = emptyRow('No saved Ayahs or Hadith yet — tap the bookmark icon on a result to save it here.');
+    return;
+  }
+  let html = '';
+  if(quranSaved.length){
+    html += `<h4 class="text-xs font-semibold uppercase tracking-wide opacity-50 mb-2">Saved Ayahs</h4><div class="space-y-4 mb-6">`;
+    html += quranSaved.map(b => buildQuranCard(b.surah, b.ayah, b.surahEnglishName, b.surahArabicName, b.arabicText, b.urduText, '')).join('');
+    html += `</div>`;
+  }
+  if(hadithSaved.length){
+    html += `<h4 class="text-xs font-semibold uppercase tracking-wide opacity-50 mb-2">Saved Hadith</h4><div class="space-y-4">`;
+    html += hadithSaved.map(r => buildHadithCard(r, '')).join('');
+    html += `</div>`;
+  }
+  box.innerHTML = html;
 }
 
 function escapeHtml(str){
@@ -5278,24 +5367,24 @@ function highlight(text, query){
   if(idx === -1) return safeText;
   return safeText.slice(0, idx) + '<mark class="hit">' + safeText.slice(idx, idx + q.length) + '</mark>' + safeText.slice(idx + q.length);
 }
-function spinnerRow(label){ return `<div class="loading-row"><div class="spinner"></div><p class="text-sm opacity-60 font-urdu" dir="rtl">${label}</p></div>`; }
-function emptyRow(label){ return `<div class="loading-row"><span class="text-3xl">🔍</span><p class="text-sm opacity-60 font-urdu text-center max-w-xs" dir="rtl">${label}</p></div>`; }
-function errorRow(label){ return `<div class="loading-row"><span class="text-3xl">⚠️</span><p class="text-sm opacity-60 font-urdu text-center max-w-xs" dir="rtl">${label}</p></div>`; }
+function spinnerRow(label){ return `<div class="loading-row"><div class="spinner"></div><p class="text-sm opacity-60">${label}</p></div>`; }
+function emptyRow(label){ return `<div class="loading-row"><span class="text-3xl">🔍</span><p class="text-sm opacity-60 text-center max-w-xs">${label}</p></div>`; }
+function errorRow(label){ return `<div class="loading-row"><span class="text-3xl">⚠️</span><p class="text-sm opacity-60 text-center max-w-xs">${label}</p></div>`; }
 
 /* ---- Quran search: AlQuran Cloud (search + ayah text) + spa5k tafsir_api ---- */
 const TAFSEER_EDITIONS = [
-  { group: 'اردو تفاسیر', options: [
-    { slug: 'ur-tafseer-ibn-e-kaseer', label: 'تفسیر ابنِ کثیر (اردو)' },
-    { slug: 'ur-tafsir-bayan-ul-quran', label: 'بیان القرآن — ڈاکٹر اسرار احمد' },
-    { slug: 'ur-tazkirul-quran', label: 'تذکیر القرآن — وحید الدین خان' },
+  { group: 'Urdu Tafseer', options: [
+    { slug: 'ur-tafseer-ibn-e-kaseer', label: 'Tafseer Ibn Kathir (Urdu)' },
+    { slug: 'ur-tafsir-bayan-ul-quran', label: 'Bayan-ul-Quran — Dr. Israr Ahmed' },
+    { slug: 'ur-tazkirul-quran', label: 'Tazkirul Quran — Wahiduddin Khan' },
   ]},
-  { group: 'عربی تفاسیر', options: [
-    { slug: 'ar-tafsir-muyassar', label: 'التفسير الميسر' },
-    { slug: 'ar-tafsir-ibn-kathir', label: 'تفسير ابن كثير' },
-    { slug: 'ar-tafseer-al-qurtubi', label: 'تفسير القرطبي' },
-    { slug: 'ar-tafsir-al-tabari', label: 'تفسير الطبري' },
-    { slug: 'ar-tafsir-al-baghawi', label: 'تفسير البغوي' },
-    { slug: 'ar-tafseer-al-saddi', label: 'تفسير السعدي' },
+  { group: 'Arabic Tafseer', options: [
+    { slug: 'ar-tafsir-muyassar', label: 'Al-Tafsir al-Muyassar' },
+    { slug: 'ar-tafsir-ibn-kathir', label: 'Tafsir Ibn Kathir' },
+    { slug: 'ar-tafseer-al-qurtubi', label: 'Tafsir al-Qurtubi' },
+    { slug: 'ar-tafsir-al-tabari', label: 'Tafsir al-Tabari' },
+    { slug: 'ar-tafsir-al-baghawi', label: 'Tafsir al-Baghawi' },
+    { slug: 'ar-tafseer-al-saddi', label: 'Tafsir al-Saddi' },
   ]},
 ];
 const DEFAULT_TAFSEER_SLUG = 'ur-tafseer-ibn-e-kaseer';
@@ -5313,6 +5402,250 @@ function normalizeArabic(text){
     .trim();
 }
 
+/* ---- 99 Names of Allah (Asma-ul-Husna) ---- */
+const ASMA_UL_HUSNA = [
+  {n:1,ar:'الرَّحْمَٰن',tr:'Ar-Rahman',ur:'نہایت مہربان'},
+  {n:2,ar:'الرَّحِيم',tr:'Ar-Raheem',ur:'رحم کرنے والا'},
+  {n:3,ar:'الْمَلِك',tr:'Al-Malik',ur:'بادشاہِ حقیقی'},
+  {n:4,ar:'الْقُدُّوس',tr:'Al-Quddus',ur:'پاک ذات'},
+  {n:5,ar:'السَّلَام',tr:'As-Salam',ur:'سلامتی دینے والا'},
+  {n:6,ar:'الْمُؤْمِن',tr:'Al-Mu\'min',ur:'امن دینے والا'},
+  {n:7,ar:'الْمُهَيْمِن',tr:'Al-Muhaymin',ur:'نگہبان'},
+  {n:8,ar:'الْعَزِيز',tr:'Al-Aziz',ur:'زبردست غالب'},
+  {n:9,ar:'الْجَبَّار',tr:'Al-Jabbar',ur:'زور آور'},
+  {n:10,ar:'الْمُتَكَبِّر',tr:'Al-Mutakabbir',ur:'بڑائی والا'},
+  {n:11,ar:'الْخَالِق',tr:'Al-Khaliq',ur:'پیدا کرنے والا'},
+  {n:12,ar:'الْبَارِئ',tr:'Al-Bari\'',ur:'بغیر نمونے کے پیدا کرنے والا'},
+  {n:13,ar:'الْمُصَوِّر',tr:'Al-Musawwir',ur:'صورت بنانے والا'},
+  {n:14,ar:'الْغَفَّار',tr:'Al-Ghaffar',ur:'بہت بخشنے والا'},
+  {n:15,ar:'الْقَهَّار',tr:'Al-Qahhar',ur:'سب پر غالب'},
+  {n:16,ar:'الْوَهَّاب',tr:'Al-Wahhab',ur:'بہت عطا کرنے والا'},
+  {n:17,ar:'الرَّزَّاق',tr:'Ar-Razzaq',ur:'رزق دینے والا'},
+  {n:18,ar:'الْفَتَّاح',tr:'Al-Fattah',ur:'فیصلہ کرنے والا'},
+  {n:19,ar:'اَلْعَلِيْم',tr:'Al-Alim',ur:'سب کچھ جاننے والا'},
+  {n:20,ar:'الْقَابِض',tr:'Al-Qabid',ur:'روزی تنگ کرنے والا'},
+  {n:21,ar:'الْبَاسِط',tr:'Al-Basit',ur:'روزی کشادہ کرنے والا'},
+  {n:22,ar:'الْخَافِض',tr:'Al-Khafid',ur:'پست کرنے والا'},
+  {n:23,ar:'الرَّافِع',tr:'Ar-Rafi\'',ur:'بلند کرنے والا'},
+  {n:24,ar:'الْمُعِز',tr:'Al-Mu\'izz',ur:'عزت دینے والا'},
+  {n:25,ar:'المُذِل',tr:'Al-Mudhill',ur:'ذلت دینے والا'},
+  {n:26,ar:'السَّمِيع',tr:'As-Sami\'',ur:'سننے والا'},
+  {n:27,ar:'الْبَصِير',tr:'Al-Basir',ur:'دیکھنے والا'},
+  {n:28,ar:'الْحَكَم',tr:'Al-Hakam',ur:'فیصلہ کرنے والا'},
+  {n:29,ar:'الْعَدْل',tr:'Al-Adl',ur:'انصاف کرنے والا'},
+  {n:30,ar:'اللَّطِيف',tr:'Al-Latif',ur:'باریک بین، مہربان'},
+  {n:31,ar:'الْخَبِير',tr:'Al-Khabir',ur:'خبر رکھنے والا'},
+  {n:32,ar:'الْحَلِيم',tr:'Al-Halim',ur:'بردبار'},
+  {n:33,ar:'الْعَظِيم',tr:'Al-Azim',ur:'بہت بڑا'},
+  {n:34,ar:'الْغَفُور',tr:'Al-Ghafur',ur:'بخشنے والا'},
+  {n:35,ar:'الشَّكُور',tr:'Ash-Shakur',ur:'قدر دان'},
+  {n:36,ar:'الْعَلِي',tr:'Al-Ali',ur:'بلند مرتبہ'},
+  {n:37,ar:'الْكَبِير',tr:'Al-Kabir',ur:'بڑائی والا'},
+  {n:38,ar:'الْحَفِيظ',tr:'Al-Hafiz',ur:'حفاظت کرنے والا'},
+  {n:39,ar:'المُقيت',tr:'Al-Muqit',ur:'روزی پہنچانے والا'},
+  {n:40,ar:'الْحسِيب',tr:'Al-Hasib',ur:'حساب لینے والا'},
+  {n:41,ar:'الْجَلِيل',tr:'Al-Jalil',ur:'بزرگی والا'},
+  {n:42,ar:'الْكَرِيم',tr:'Al-Karim',ur:'کرم کرنے والا'},
+  {n:43,ar:'الرَّقِيب',tr:'Ar-Raqib',ur:'نگہبان'},
+  {n:44,ar:'الْمُجِيب',tr:'Al-Mujib',ur:'دعا قبول کرنے والا'},
+  {n:45,ar:'الْوَاسِع',tr:'Al-Wasi\'',ur:'وسعت والا'},
+  {n:46,ar:'الْحَكِيم',tr:'Al-Hakim',ur:'حکمت والا'},
+  {n:47,ar:'الْوَدُود',tr:'Al-Wadud',ur:'محبت کرنے والا'},
+  {n:48,ar:'الْمَجِيد',tr:'Al-Majid',ur:'بزرگی والا'},
+  {n:49,ar:'الْبَاعِث',tr:'Al-Ba\'ith',ur:'زندہ کرنے والا'},
+  {n:50,ar:'الشَّهِيد',tr:'Ash-Shahid',ur:'حاضر و ناظر'},
+  {n:51,ar:'الْحَق',tr:'Al-Haqq',ur:'حق تعالیٰ'},
+  {n:52,ar:'الْوَكِيل',tr:'Al-Wakil',ur:'کارساز'},
+  {n:53,ar:'الْقَوِي',tr:'Al-Qawi',ur:'زبردست قوت والا'},
+  {n:54,ar:'الْمَتِين',tr:'Al-Matin',ur:'مضبوط'},
+  {n:55,ar:'الْوَلِي',tr:'Al-Wali',ur:'دوست، مددگار'},
+  {n:56,ar:'الْحَمِيد',tr:'Al-Hamid',ur:'تعریف کے لائق'},
+  {n:57,ar:'الْمُحْصِي',tr:'Al-Muhsi',ur:'شمار کرنے والا'},
+  {n:58,ar:'الْمُبْدِئ',tr:'Al-Mubdi\'',ur:'ابتدا کرنے والا'},
+  {n:59,ar:'الْمُعِيد',tr:'Al-Mu\'id',ur:'دوبارہ پیدا کرنے والا'},
+  {n:60,ar:'الْمُحْيِي',tr:'Al-Muhyi',ur:'زندگی دینے والا'},
+  {n:61,ar:'المُمِيت',tr:'Al-Mumit',ur:'موت دینے والا'},
+  {n:62,ar:'الْحَي',tr:'Al-Hayy',ur:'زندہ'},
+  {n:63,ar:'الْقَيُّوم',tr:'Al-Qayyum',ur:'قائم رہنے والا'},
+  {n:64,ar:'الْوَاجِد',tr:'Al-Wajid',ur:'پانے والا'},
+  {n:65,ar:'الْمَاجِد',tr:'Al-Majid',ur:'بزرگی والا'},
+  {n:66,ar:'الْواحِد',tr:'Al-Wahid',ur:'اکیلا'},
+  {n:67,ar:'اَلاَحَد',tr:'Al-Ahad',ur:'یکتا'},
+  {n:68,ar:'الصَّمَد',tr:'As-Samad',ur:'بے نیاز'},
+  {n:69,ar:'الْقَادِر',tr:'Al-Qadir',ur:'قدرت والا'},
+  {n:70,ar:'الْمُقْتَدِر',tr:'Al-Muqtadir',ur:'کامل قدرت والا'},
+  {n:71,ar:'الْمُقَدِّم',tr:'Al-Muqaddim',ur:'آگے بڑھانے والا'},
+  {n:72,ar:'الْمُؤَخِّر',tr:'Al-Mu\'akhkhir',ur:'پیچھے کرنے والا'},
+  {n:73,ar:'الأوَّل',tr:'Al-Awwal',ur:'سب سے پہلے'},
+  {n:74,ar:'الآخِر',tr:'Al-Akhir',ur:'سب سے آخر'},
+  {n:75,ar:'الظَّاهِر',tr:'Az-Zahir',ur:'ظاہر'},
+  {n:76,ar:'الْبَاطِن',tr:'Al-Batin',ur:'پوشیدہ'},
+  {n:77,ar:'الْوَالِي',tr:'Al-Wali',ur:'حاکم، مالک'},
+  {n:78,ar:'الْمُتَعَالِي',tr:'Al-Muta\'ali',ur:'برتر'},
+  {n:79,ar:'الْبَر',tr:'Al-Barr',ur:'احسان کرنے والا'},
+  {n:80,ar:'التَّوَّاب',tr:'At-Tawwab',ur:'توبہ قبول کرنے والا'},
+  {n:81,ar:'الْمُنْتَقِم',tr:'Al-Muntaqim',ur:'بدلہ لینے والا'},
+  {n:82,ar:'العَفُو',tr:'Al-Afuww',ur:'معاف کرنے والا'},
+  {n:83,ar:'الرَّؤُوف',tr:'Ar-Ra\'uf',ur:'شفقت کرنے والا'},
+  {n:84,ar:'مَالِكُ الْمُلْك',tr:'Malik-ul-Mulk',ur:'ملک کا مالک'},
+  {n:85,ar:'ذُوالْجَلَالِ وَالإكْرَام',tr:'Dhul-Jalali wal-Ikram',ur:'بزرگی اور عزت والا'},
+  {n:86,ar:'الْمُقْسِط',tr:'Al-Muqsit',ur:'انصاف کرنے والا'},
+  {n:87,ar:'الْجَامِع',tr:'Al-Jami\'',ur:'جمع کرنے والا'},
+  {n:88,ar:'الْغَنِي',tr:'Al-Ghani',ur:'بے نیاز'},
+  {n:89,ar:'الْمُغْنِي',tr:'Al-Mughni',ur:'بے نیاز کرنے والا'},
+  {n:90,ar:'اَلْمَانِع',tr:'Al-Mani\'',ur:'روکنے والا'},
+  {n:91,ar:'الضَّار',tr:'Ad-Darr',ur:'نقصان پہنچانے والا'},
+  {n:92,ar:'النَّافِع',tr:'An-Nafi\'',ur:'نفع دینے والا'},
+  {n:93,ar:'النُّور',tr:'An-Nur',ur:'نور'},
+  {n:94,ar:'الْهَادِي',tr:'Al-Hadi',ur:'ہدایت دینے والا'},
+  {n:95,ar:'الْبَدِيع',tr:'Al-Badi\'',ur:'انوکھا بنانے والا'},
+  {n:96,ar:'الْبَاقِي',tr:'Al-Baqi',ur:'ہمیشہ رہنے والا'},
+  {n:97,ar:'الْوَارِث',tr:'Al-Warith',ur:'وارث'},
+  {n:98,ar:'الرَّشِيد',tr:'Ar-Rashid',ur:'راہ دکھانے والا'},
+  {n:99,ar:'الصَّبُور',tr:'As-Sabur',ur:'صبر کرنے والا'},
+];
+
+function renderAsmaGrid(filterText){
+  const wrap = document.getElementById('asmaGrid');
+  if(!wrap) return;
+  const f = (filterText || '').trim().toLowerCase();
+  const list = !f ? ASMA_UL_HUSNA : ASMA_UL_HUSNA.filter(x =>
+    x.tr.toLowerCase().includes(f) || x.ur.includes(filterText.trim()) || x.ar.includes(filterText.trim())
+  );
+  if(!list.length){
+    wrap.innerHTML = `<div class="col-span-full">${emptyRow('No matching name found.')}</div>`;
+    return;
+  }
+  wrap.innerHTML = list.map(x => `
+    <div class="name-card">
+      <div class="name-num">${x.n}</div>
+      <div class="font-arabic text-2xl mt-1" dir="rtl">${escapeHtml(x.ar)}</div>
+      <div class="text-sm font-semibold mt-2 text-emerald-800 dark:text-gold-400">${escapeHtml(x.tr)}</div>
+      <div class="font-urdu text-sm opacity-75 mt-1" dir="rtl">${escapeHtml(x.ur)}</div>
+    </div>
+  `).join('');
+}
+function filterAsma(){
+  renderAsmaGrid(document.getElementById('asmaFilter').value);
+}
+
+
+function getBookmarks(kind){
+  try{ return JSON.parse(localStorage.getItem('bookmarks_'+kind) || '[]'); }catch(e){ return []; }
+}
+function saveBookmarks(kind, list){
+  try{ localStorage.setItem('bookmarks_'+kind, JSON.stringify(list)); }catch(e){}
+}
+function isBookmarked(kind, id){
+  return getBookmarks(kind).some(b => b.id === id);
+}
+function toggleBookmark(btn, kind, id, payload){
+  let list = getBookmarks(kind);
+  const idx = list.findIndex(b => b.id === id);
+  if(idx > -1){
+    list.splice(idx, 1);
+    saveBookmarks(kind, list);
+    btn.classList.remove('is-bookmarked');
+    btn.setAttribute('aria-pressed', 'false');
+    showToast('Removed from Saved');
+  } else {
+    list.unshift(Object.assign({ id }, payload));
+    if(list.length > 200) list = list.slice(0, 200);
+    saveBookmarks(kind, list);
+    btn.classList.add('is-bookmarked');
+    btn.setAttribute('aria-pressed', 'true');
+    showToast('Saved for later');
+  }
+  if(document.getElementById('panelSaved') && document.getElementById('panelSaved').classList.contains('active')) renderSavedPanel();
+}
+function copyCardText(btn, text){
+  navigator.clipboard.writeText(text).then(()=>{
+    showToast('Copied to clipboard');
+  }).catch(()=>{
+    showToast('Could not copy');
+  });
+}
+function bookmarkIconSvg(){
+  return `<svg viewBox="0 0 24 24" fill="currentColor" stroke="none" class="w-4 h-4 bm-fill"><path d="M6 3a2 2 0 0 0-2 2v16l8-4.5L20 21V5a2 2 0 0 0-2-2H6z"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 bm-outline"><path d="M6 3a2 2 0 0 0-2 2v16l8-4.5L20 21V5a2 2 0 0 0-2-2H6z"/></svg>`;
+}
+
+/* ---- Recent searches (localStorage) ---- */
+function pushRecentSearch(kind, q){
+  let list = [];
+  try{ list = JSON.parse(localStorage.getItem('recent_'+kind) || '[]'); }catch(e){}
+  list = list.filter(x => x !== q);
+  list.unshift(q);
+  list = list.slice(0, 8);
+  try{ localStorage.setItem('recent_'+kind, JSON.stringify(list)); }catch(e){}
+  renderRecentSearches(kind);
+}
+function renderRecentSearches(kind){
+  const wrap = document.getElementById(kind === 'quran' ? 'quranRecent' : 'hadithRecent');
+  if(!wrap) return;
+  let list = [];
+  try{ list = JSON.parse(localStorage.getItem('recent_'+kind) || '[]'); }catch(e){}
+  if(!list.length){ wrap.innerHTML = ''; return; }
+  const inputId = kind === 'quran' ? 'quranQuery' : 'hadithQuery';
+  const runFn = kind === 'quran' ? 'runQuranSearch' : 'runHadithSearch';
+  wrap.innerHTML = `<span class="text-[11px] opacity-50 mr-1">Recent:</span>` + list.map(q =>
+    `<button type="button" class="recent-chip font-arabic" onclick="document.getElementById('${inputId}').value=${JSON.stringify(q)}; ${runFn}();">${escapeHtml(q)}</button>`
+  ).join('');
+}
+
+function buildQuranCard(surah, ayah, surahEnglishName, surahArabicName, arabicText, urduText, query, globalNumber){
+  const cardId = `q_${surah}_${ayah}`;
+  const bmId = `${surah}:${ayah}`;
+  const bookmarked = isBookmarked('quran', bmId);
+  const audioBtn = globalNumber ? `<button type="button" class="card-action-btn" title="Play recitation" onclick="playAyahAudio(this, ${globalNumber})">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><path d="M5 3v18l15-9L5 3z"/></svg>
+          </button>` : '';
+  return `
+      <div class="result-card p-4 md:p-5 space-y-3" id="${cardId}">
+        <div class="flex items-center justify-between gap-3 flex-wrap">
+          <span class="verse-badge">
+            <svg class="motif-dot" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="1.3"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z"/></svg>
+            Surah ${escapeHtml(surahEnglishName)} — ${surah}:${ayah}
+          </span>
+          <span class="text-xs opacity-50 font-arabic" dir="rtl">${escapeHtml(surahArabicName)}</span>
+        </div>
+        <p class="text-xl leading-loose font-arabic text-right" dir="rtl">${highlight(arabicText, query || '')}</p>
+        ${urduText ? `<p class="text-sm leading-relaxed font-urdu opacity-90 text-right border-r-2 border-gold-500/30 pr-3" dir="rtl">${highlight(urduText, query || '')}</p>` : ''}
+        <div class="flex items-center justify-between gap-3 pt-1 flex-wrap">
+          <button type="button" class="tafseer-toggle inline-flex items-center gap-2 text-xs font-semibold text-emerald-800 dark:text-gold-400 hover:underline"
+            aria-expanded="false" onclick="toggleTafseerPanel(this, ${surah}, ${ayah})">
+            <span>Tafseer</span>
+            <svg class="chev-icon w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="flex items-center gap-1.5">
+            ${audioBtn}
+            <button type="button" class="card-action-btn" title="Copy" onclick='copyCardText(this, ${JSON.stringify(arabicText + (urduText ? "\n" + urduText : ""))})'>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+            </button>
+            <button type="button" class="card-action-btn bookmark-btn ${bookmarked ? 'is-bookmarked' : ''}" aria-pressed="${bookmarked}" title="Save"
+              onclick='toggleBookmark(this, "quran", ${JSON.stringify(bmId)}, {surah:${surah}, ayah:${ayah}, surahEnglishName:${JSON.stringify(surahEnglishName)}, surahArabicName:${JSON.stringify(surahArabicName)}, arabicText:${JSON.stringify(arabicText)}, urduText:${JSON.stringify(urduText)}})'>
+              ${bookmarkIconSvg()}
+            </button>
+          </div>
+        </div>
+        <div class="tafseer-panel" id="panel_${cardId}">
+          <div class="mt-3 space-y-3">
+            <select class="w-full text-xs px-3 py-2.5 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500"
+              onchange="loadTafseer(this.value, ${surah}, ${ayah}, 'body_${cardId}')">
+              ${tafseerOptionsHtml()}
+            </select>
+            <div id="body_${cardId}" class="text-sm leading-relaxed font-urdu bg-fog-50 dark:bg-emerald-950/60 rounded-lg p-3 border border-gold-500/15" dir="rtl"></div>
+          </div>
+        </div>
+      </div>`;
+}
+
+let currentAudio = null;
+function playAyahAudio(btn, globalNumber){
+  if(currentAudio){ currentAudio.pause(); currentAudio = null; }
+  currentAudio = new Audio(`https://cdn.islamic.network/quran/audio/128/ar.alafasy/${globalNumber}.mp3`);
+  currentAudio.play().catch(()=> showToast('Could not play audio'));
+}
+
 async function runQuranSearch(e){
   if(e) e.preventDefault();
   const input = document.getElementById('quranQuery');
@@ -5320,8 +5653,9 @@ async function runQuranSearch(e){
   const box = document.getElementById('quranResults');
   const count = document.getElementById('resultCount');
   if(!q){ input.focus(); return false; }
+  pushRecentSearch('quran', q);
 
-  box.innerHTML = spinnerRow('تلاش جاری ہے...');
+  box.innerHTML = spinnerRow('Searching...');
   if(count) count.textContent = '';
 
   // Agar input Arabic script me hai to sirf Arabic edition search karo (tashkeel/diacritics normalize karke),
@@ -5352,7 +5686,7 @@ async function runQuranSearch(e){
     });
 
     if(!uniq.length){
-      box.innerHTML = emptyRow('کوئی نتیجہ نہیں ملا — کوئی اور لفظ یا مختصر آیت آزمائیں۔');
+      box.innerHTML = emptyRow('No results found — try another word or a shorter Ayah.');
       return false;
     }
 
@@ -5362,7 +5696,7 @@ async function runQuranSearch(e){
         .then(r=>r.json()).catch(()=>null)
     ));
 
-    if(count) count.textContent = `${uniq.length} نتائج ملے — سب سے قریبی ${top.length} دکھائے جا رہے ہیں`;
+    if(count) count.textContent = `${uniq.length} results found — showing the closest ${top.length}`;
 
     box.innerHTML = top.map((m, i) => {
       const c = combined[i];
@@ -5373,39 +5707,88 @@ async function runQuranSearch(e){
         if(arEd) arabicText = arEd.text;
         if(urEd) urduText = urEd.text;
       }
-      const surah = m.surah.number, ayah = m.numberInSurah;
-      const cardId = `q_${surah}_${ayah}`;
-      return `
-      <div class="result-card p-4 md:p-5 space-y-3" id="${cardId}">
-        <div class="flex items-center justify-between gap-3 flex-wrap">
-          <span class="verse-badge">
-            <svg class="motif-dot" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="1.3"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z"/></svg>
-            سورہ ${escapeHtml(m.surah.englishName)} — ${surah}:${ayah}
-          </span>
-          <span class="text-xs opacity-50 font-urdu" dir="rtl">${escapeHtml(m.surah.name)}</span>
-        </div>
-        <p class="text-xl leading-loose font-arabic text-right" dir="rtl">${highlight(arabicText, q)}</p>
-        ${urduText ? `<p class="text-sm leading-relaxed font-urdu opacity-90 text-right border-r-2 border-gold-500/30 pr-3" dir="rtl">${highlight(urduText, q)}</p>` : ''}
-        <div class="pt-1">
-          <button type="button" class="tafseer-toggle inline-flex items-center gap-2 text-xs font-semibold text-emerald-800 dark:text-gold-400 hover:underline"
-            aria-expanded="false" onclick="toggleTafseerPanel(this, ${surah}, ${ayah})">
-            <span class="font-urdu" dir="rtl">تفسیر (اردو)</span>
-            <svg class="chev-icon w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/></svg>
-          </button>
-          <div class="tafseer-panel" id="panel_${cardId}">
-            <div class="mt-3 space-y-3">
-              <select dir="rtl" class="font-urdu w-full text-xs px-3 py-2.5 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500"
-                onchange="loadTafseer(this.value, ${surah}, ${ayah}, 'body_${cardId}')">
-                ${tafseerOptionsHtml()}
-              </select>
-              <div id="body_${cardId}" class="text-sm leading-relaxed font-urdu bg-fog-50 dark:bg-emerald-950/60 rounded-lg p-3 border border-gold-500/15" dir="rtl"></div>
-            </div>
-          </div>
-        </div>
-      </div>`;
+      return buildQuranCard(m.surah.number, m.numberInSurah, m.surah.englishName, m.surah.name, arabicText, urduText, q, m.number);
     }).join('');
   }catch(err){
-    box.innerHTML = errorRow('تلاش کی سروس تک رسائی نہیں ہو سکی — انٹرنیٹ کنکشن چیک کر کے دوبارہ کوشش کریں۔');
+    box.innerHTML = errorRow('Could not reach the search service — check your internet connection and try again.');
+  }
+  return false;
+}
+
+/* ---- Browse by Surah & Ayah (dropdowns) ---- */
+let SURAH_LIST = [];
+
+async function loadSurahList(){
+  const sel = document.getElementById('surahSelect');
+  const paraSel = document.getElementById('paraSelect');
+  if(paraSel && !paraSel.dataset.filled){
+    let opts = '<option value="">Para</option>';
+    for(let i=1;i<=30;i++) opts += `<option value="${i}">Para ${i}</option>`;
+    paraSel.innerHTML = opts;
+    paraSel.dataset.filled = '1';
+  }
+  if(!sel || SURAH_LIST.length) return;
+  try{
+    const res = await fetch('https://api.alquran.cloud/v1/surah').then(r=>r.json());
+    if(res && res.code===200 && Array.isArray(res.data)){
+      SURAH_LIST = res.data;
+      sel.innerHTML = '<option value="">Surah</option>' + SURAH_LIST.map(s =>
+        `<option value="${s.number}">${s.number}. ${escapeHtml(s.englishName)} — ${escapeHtml(s.name)}</option>`
+      ).join('');
+    }
+  }catch(err){
+    sel.innerHTML = '<option value="">Could not load</option>';
+  }
+}
+
+async function viewSelectedRange(e){
+  if(e) e.preventDefault();
+  const surahSel = document.getElementById('surahSelect');
+  const paraSel = document.getElementById('paraSelect');
+  const surahNum = parseInt(surahSel.value, 10);
+  const paraNum = parseInt(paraSel.value, 10);
+  const box = document.getElementById('quranResults');
+  const count = document.getElementById('resultCount');
+  if(!surahNum && !paraNum){ surahSel.focus(); return false; }
+
+  box.innerHTML = spinnerRow('Loading...');
+  if(count) count.textContent = '';
+
+  try{
+    const isSurah = !!surahNum;
+    const base = isSurah
+      ? `https://api.alquran.cloud/v1/surah/${surahNum}`
+      : `https://api.alquran.cloud/v1/juz/${paraNum}`;
+    const [arRes, urRes] = await Promise.all([
+      fetch(`${base}/quran-uthmani`).then(r=>r.json()).catch(()=>null),
+      fetch(`${base}/ur.jalandhry`).then(r=>r.json()).catch(()=>null)
+    ]);
+
+    if(!(arRes && arRes.code===200 && arRes.data)){
+      box.innerHTML = errorRow('Could not load — please try again.');
+      return false;
+    }
+    const ayahs = arRes.data.ayahs || [];
+    const urAyahs = (urRes && urRes.code===200 && urRes.data && urRes.data.ayahs) || [];
+
+    if(!ayahs.length){
+      box.innerHTML = emptyRow('No Ayahs found.');
+      return false;
+    }
+
+    if(count) count.textContent = isSurah
+      ? `Surah ${escapeHtml(arRes.data.englishName || '')} — ${ayahs.length} Ayahs`
+      : `Para ${paraNum} — ${ayahs.length} Ayahs`;
+
+    box.innerHTML = ayahs.map((a, i) => {
+      const urText = (urAyahs[i] && urAyahs[i].text) || '';
+      const sNum = a.surah ? a.surah.number : surahNum;
+      const sEn = a.surah ? a.surah.englishName : arRes.data.englishName;
+      const sAr = a.surah ? a.surah.name : arRes.data.name;
+      return buildQuranCard(sNum, a.numberInSurah, sEn || '', sAr || '', a.text, urText, '', a.number);
+    }).join('');
+  }catch(err){
+    box.innerHTML = errorRow('Could not reach the service — check your internet connection and try again.');
   }
   return false;
 }
@@ -5431,16 +5814,16 @@ async function loadTafseer(slug, surah, ayah, targetId){
   if(!out) return;
   const key = `${slug}_${surah}_${ayah}`;
   if(tafseerCache[key]){ out.innerHTML = tafseerCache[key]; out.dataset.loaded = '1'; return; }
-  out.innerHTML = spinnerRow('تفسیر لوڈ ہو رہی ہے...');
+  out.innerHTML = spinnerRow('Loading Tafseer...');
   try{
     const res = await fetch(`https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/${slug}/${surah}/${ayah}.json`);
     const data = await res.json();
-    const html = (data && data.text) ? `<p>${data.text}</p>` : `<p class="opacity-60">اس آیت کے لیے یہ تفسیر دستیاب نہیں — کوئی اور تفسیر منتخب کریں۔</p>`;
+    const html = (data && data.text) ? `<p>${data.text}</p>` : `<p class="opacity-60">This Tafseer is not available for this Ayah — please choose another.</p>`;
     tafseerCache[key] = html;
     out.innerHTML = html;
     out.dataset.loaded = '1';
   }catch(err){
-    out.innerHTML = `<p class="opacity-60">تفسیر لوڈ نہیں ہو سکی، دوبارہ کوشش کریں۔</p>`;
+    out.innerHTML = `<p class="opacity-60">Could not load Tafseer, please try again.</p>`;
   }
 }
 
@@ -5457,13 +5840,13 @@ const HADITH_BOOKS = [
 const hadithCache = {};
 let activeHadithBook = 'all';
 
-function hadithBookLabel(slug){ const b = HADITH_BOOKS.find(x=>x.slug===slug); return b ? b.ur : slug; }
+function hadithBookLabel(slug){ const b = HADITH_BOOKS.find(x=>x.slug===slug); return b ? b.en : slug; }
 
 function renderBookChips(){
   const wrap = document.getElementById('bookChips');
   if(!wrap) return;
-  const chips = [{ slug:'all', ur:'تمام کتب' }, ...HADITH_BOOKS];
-  wrap.innerHTML = chips.map(b => `<button type="button" class="book-chip font-urdu" dir="rtl" aria-pressed="${b.slug===activeHadithBook}" onclick="selectHadithBook('${b.slug}')">${b.ur}</button>`).join('');
+  const chips = [{ slug:'all', en:'All Books' }, ...HADITH_BOOKS];
+  wrap.innerHTML = chips.map(b => `<button type="button" class="book-chip" aria-pressed="${b.slug===activeHadithBook}" onclick="selectHadithBook('${b.slug}')">${b.en}</button>`).join('');
 }
 function selectHadithBook(slug){ activeHadithBook = slug; renderBookChips(); }
 
@@ -5477,6 +5860,33 @@ async function loadHadithEdition(lang, slug){
   return data;
 }
 
+function buildHadithCard(r, q){
+  const bmId = `${r.book}:${r.number}`;
+  const bookmarked = isBookmarked('hadith', bmId);
+  return `
+      <div class="result-card p-4 md:p-5 space-y-2">
+        <div class="flex items-center justify-between gap-3 flex-wrap">
+          <span class="verse-badge">
+            <svg class="motif-dot" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="1.3"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z"/></svg>
+            <span>${escapeHtml(r.bookLabel)} — Hadith No. ${r.number}${r.chapter ? ' · Chapter: ' + escapeHtml(r.chapter) : ''}</span>
+          </span>
+          ${r.grade ? `<span class="grade-pill text-emerald-700 dark:text-gold-400">${escapeHtml(r.grade)}</span>` : ''}
+        </div>
+        ${r.arabicText ? `<p class="text-lg leading-loose font-arabic text-right" dir="rtl">${highlight(r.arabicText, q || '')}</p>` : ''}
+        <div class="isnad-divider" aria-hidden="true"><span class="seg"></span><span class="node"></span><span class="seg"></span><span class="node"></span><span class="seg"></span></div>
+        ${r.urduText ? `<p class="text-sm leading-relaxed font-urdu text-right" dir="rtl">${highlight(r.urduText, q || '')}</p>` : `<p class="text-xs opacity-50">Urdu translation not available</p>`}
+        <div class="flex items-center justify-end gap-1.5 pt-1">
+          <button type="button" class="card-action-btn" title="Copy" onclick='copyCardText(this, ${JSON.stringify((r.arabicText || "") + (r.urduText ? "\n" + r.urduText : ""))})'>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+          </button>
+          <button type="button" class="card-action-btn bookmark-btn ${bookmarked ? 'is-bookmarked' : ''}" aria-pressed="${bookmarked}" title="Save"
+            onclick='toggleBookmark(this, "hadith", ${JSON.stringify(bmId)}, ${JSON.stringify(r)})'>
+            ${bookmarkIconSvg()}
+          </button>
+        </div>
+      </div>`;
+}
+
 async function runHadithSearch(e){
   if(e) e.preventDefault();
   const input = document.getElementById('hadithQuery');
@@ -5484,9 +5894,11 @@ async function runHadithSearch(e){
   const box = document.getElementById('hadithResults');
   const count = document.getElementById('hadithResultCount');
   if(!q){ input.focus(); return false; }
+  pushRecentSearch('hadith', q);
+  const sahihOnly = document.getElementById('sahihOnlyFilter') && document.getElementById('sahihOnlyFilter').checked;
 
   const booksToSearch = activeHadithBook === 'all' ? HADITH_BOOKS.map(b=>b.slug) : [activeHadithBook];
-  box.innerHTML = spinnerRow(booksToSearch.length > 1 ? 'تمام کتب میں تلاش جاری ہے، ذرا انتظار کریں...' : 'لوڈ ہو رہا ہے...');
+  box.innerHTML = spinnerRow(booksToSearch.length > 1 ? 'Searching all books, please wait...' : 'Loading...');
   if(count) count.textContent = '';
 
   try{
@@ -5525,32 +5937,22 @@ async function runHadithSearch(e){
       });
     });
 
+    if(sahihOnly){
+      results = results.filter(r => /sahih|صحیح|صحيح/i.test(r.grade || ''));
+    }
     const total = results.length;
     results = results.slice(0, 40);
 
     if(!total){
-      box.innerHTML = emptyRow('کوئی حدیث نہیں ملی — کوئی اور لفظ یا مختصر جملہ آزمائیں۔');
+      box.innerHTML = emptyRow('No Hadith found — try another word or a shorter phrase.');
       return false;
     }
 
-    if(count) count.textContent = `${total} نتائج ملے${total > results.length ? ' — پہلے ' + results.length + ' دکھائے جا رہے ہیں' : ''}`;
+    if(count) count.textContent = `${total} results found${total > results.length ? ' — showing first ' + results.length : ''}`;
 
-    box.innerHTML = results.map(r => `
-      <div class="result-card p-4 md:p-5 space-y-2">
-        <div class="flex items-center justify-between gap-3 flex-wrap">
-          <span class="verse-badge">
-            <svg class="motif-dot" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="1.3"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z"/></svg>
-            <span class="font-urdu" dir="rtl">${escapeHtml(r.bookLabel)} — حدیث نمبر ${r.number}${r.chapter ? ' · باب: ' + escapeHtml(r.chapter) : ''}</span>
-          </span>
-          ${r.grade ? `<span class="grade-pill text-emerald-700 dark:text-gold-400">${escapeHtml(r.grade)}</span>` : ''}
-        </div>
-        ${r.arabicText ? `<p class="text-lg leading-loose font-arabic text-right" dir="rtl">${highlight(r.arabicText, q)}</p>` : ''}
-        <div class="isnad-divider" aria-hidden="true"><span class="seg"></span><span class="node"></span><span class="seg"></span><span class="node"></span><span class="seg"></span></div>
-        ${r.urduText ? `<p class="text-sm leading-relaxed font-urdu text-right" dir="rtl">${highlight(r.urduText, q)}</p>` : `<p class="text-xs opacity-50 font-urdu text-right" dir="rtl">اردو ترجمہ دستیاب نہیں</p>`}
-      </div>
-    `).join('');
+    box.innerHTML = results.map(r => buildHadithCard(r, q)).join('');
   }catch(err){
-    box.innerHTML = errorRow('حدیث ڈیٹا لوڈ نہیں ہو سکا — انٹرنیٹ کنکشن چیک کر کے دوبارہ کوشش کریں۔');
+    box.innerHTML = errorRow('Could not load Hadith data — check your internet connection and try again.');
   }
   return false;
 }
@@ -5680,9 +6082,12 @@ observeReveals();
 startCounters(document);
 setAuthMode('login');
 renderBookChips();
+loadSurahList();
+renderRecentSearches('quran');
+renderRecentSearches('hadith');
 
 const initial = (location.hash||'#home').replace('#','');
-if(document.getElementById('page-'+initial)) navigate(initial); else navigate('home');
+if(document.getElementById('page-'+initial)) navigate(initial, 'replace'); else navigate('home', 'replace');
 </script>
 
 </body>
