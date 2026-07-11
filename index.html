@@ -887,18 +887,91 @@
             <div id="admTeachersList" class="grid sm:grid-cols-2 gap-4"></div>
           </div>
 
-          <!-- Placeholder tabs -->
-          <div id="admintab-classes" class="admin-panel hidden bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-8 border border-gold-500/20 text-center">
-            <p class="opacity-60 text-sm">📚 Classes management is coming soon.</p>
+          <!-- Classes tab: assign course + teacher to each student -->
+          <div id="admintab-classes" class="admin-panel hidden bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-6 border border-gold-500/20">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="font-display font-semibold text-lg">📚 Classes — Course &amp; Teacher Assignment</h3>
+            </div>
+            <p class="text-xs opacity-60 mb-5">Har student ko course aur teacher assign karein.</p>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead><tr class="text-left border-b border-gold-500/20 opacity-70">
+                  <th class="py-2 px-4">Student</th><th class="py-2 px-4">Class</th><th class="py-2 px-4">Course</th><th class="py-2 px-4">Teacher</th><th class="py-2 px-4 text-right">Actions</th>
+                </tr></thead>
+                <tbody id="admClassesTableBody"><tr><td colspan="5" class="py-6 text-center opacity-60 text-sm">Loading…</td></tr></tbody>
+              </table>
+            </div>
           </div>
-          <div id="admintab-attendance" class="admin-panel hidden bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-8 border border-gold-500/20 text-center">
-            <p class="opacity-60 text-sm">🗓️ Attendance tracking is coming soon.</p>
+
+          <!-- Attendance tab -->
+          <div id="admintab-attendance" class="admin-panel hidden bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-6 border border-gold-500/20">
+            <div class="flex flex-wrap gap-3 justify-between items-center mb-4">
+              <h3 class="font-display font-semibold text-lg">🗓️ Attendance</h3>
+              <div class="flex gap-2 items-center">
+                <input type="date" id="admAttendanceDate" onchange="loadAdminAttendance()" class="px-3 py-2 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500">
+                <button onclick="saveAdminAttendance()" class="btn-gold px-4 py-2 rounded-lg text-sm font-semibold">Save Attendance</button>
+              </div>
+            </div>
+            <p class="text-xs opacity-60 mb-5">Date chunein aur har student ki attendance mark karke Save karein.</p>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead><tr class="text-left border-b border-gold-500/20 opacity-70">
+                  <th class="py-2 px-4">Student</th><th class="py-2 px-4">Class</th><th class="py-2 px-4">Status</th>
+                </tr></thead>
+                <tbody id="admAttendanceTableBody"><tr><td colspan="3" class="py-6 text-center opacity-60 text-sm">Loading…</td></tr></tbody>
+              </table>
+            </div>
           </div>
-          <div id="admintab-tasks" class="admin-panel hidden bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-8 border border-gold-500/20 text-center">
-            <p class="opacity-60 text-sm">📋 Tasks management is coming soon.</p>
+
+          <!-- Tasks tab -->
+          <div id="admintab-tasks" class="admin-panel hidden bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-6 border border-gold-500/20">
+            <div class="flex justify-between items-center mb-4">
+              <h3 class="font-display font-semibold text-lg">📋 Tasks</h3>
+              <button onclick="openTaskModal()" class="btn-gold px-4 py-2 rounded-lg text-sm font-semibold">+ Add Task</button>
+            </div>
+            <p class="text-xs opacity-60 mb-5">Poori class ko ya kisi ek student ko task/assignment dein.</p>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead><tr class="text-left border-b border-gold-500/20 opacity-70">
+                  <th class="py-2 px-4">Title</th><th class="py-2 px-4">For</th><th class="py-2 px-4">Due</th><th class="py-2 px-4">Status</th><th class="py-2 px-4 text-right">Actions</th>
+                </tr></thead>
+                <tbody id="admTasksTableBody"><tr><td colspan="5" class="py-6 text-center opacity-60 text-sm">Loading…</td></tr></tbody>
+              </table>
+            </div>
           </div>
-          <div id="admintab-reports" class="admin-panel hidden bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-8 border border-gold-500/20 text-center">
-            <p class="opacity-60 text-sm">📈 Reports are coming soon.</p>
+
+          <!-- Reports tab -->
+          <div id="admintab-reports" class="admin-panel hidden">
+            <h3 class="font-display font-semibold text-lg mb-4">📈 Reports</h3>
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-5 border border-gold-500/20">
+                <p class="text-xs opacity-60">Total Students</p>
+                <p class="text-2xl font-bold mt-1" id="admRepTotalStudents">—</p>
+              </div>
+              <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-5 border border-gold-500/20">
+                <p class="text-xs opacity-60">Attendance Rate (30 days)</p>
+                <p class="text-2xl font-bold mt-1" id="admRepAttendanceRate">—</p>
+              </div>
+              <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-5 border border-gold-500/20">
+                <p class="text-xs opacity-60">Tasks Completed</p>
+                <p class="text-2xl font-bold mt-1" id="admRepTasksDone">—</p>
+              </div>
+              <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-5 border border-gold-500/20">
+                <p class="text-xs opacity-60">Tasks Pending</p>
+                <p class="text-2xl font-bold mt-1" id="admRepTasksPending">—</p>
+              </div>
+            </div>
+            <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-6 border border-gold-500/20">
+              <h4 class="font-semibold mb-4 text-sm">Class-wise Breakdown</h4>
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead><tr class="text-left border-b border-gold-500/20 opacity-70">
+                    <th class="py-2 px-4">Class</th><th class="py-2 px-4">Students</th><th class="py-2 px-4">Avg Attendance (30d)</th>
+                  </tr></thead>
+                  <tbody id="admReportsTableBody"><tr><td colspan="3" class="py-6 text-center opacity-60 text-sm">Loading…</td></tr></tbody>
+                </table>
+              </div>
+            </div>
           </div>
           <div id="admintab-settings" class="admin-panel hidden bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-8 border border-gold-500/20 text-center">
             <p class="opacity-60 text-sm">⚙️ Academy settings are coming soon.</p>
@@ -931,6 +1004,53 @@
           </select>
           <div class="flex gap-3 pt-2">
             <button type="button" onclick="closeStudentModal()" class="flex-1 py-2.5 rounded-lg font-semibold text-sm border border-gold-500/40">Cancel</button>
+            <button class="flex-1 btn-gold py-2.5 rounded-lg font-semibold text-sm">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Assign course/teacher modal -->
+    <div id="assignModal" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-5 bg-black/50">
+      <div class="bg-fog-50 dark:bg-emerald-950 rounded-2xl p-6 w-full max-w-md border border-gold-500/20">
+        <h4 class="font-display text-lg font-semibold mb-4">Assign Course &amp; Teacher</h4>
+        <form onsubmit="return saveAssign(event)" class="space-y-3">
+          <input type="hidden" id="assignStudentId">
+          <p class="text-sm font-medium" id="assignStudentName"></p>
+          <select id="assignCourse" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+            <option value="">— Select Course —</option>
+          </select>
+          <select id="assignTeacher" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+            <option value="">— Select Teacher —</option>
+          </select>
+          <div class="flex gap-3 pt-2">
+            <button type="button" onclick="closeAssignModal()" class="flex-1 py-2.5 rounded-lg font-semibold text-sm border border-gold-500/40">Cancel</button>
+            <button class="flex-1 btn-gold py-2.5 rounded-lg font-semibold text-sm">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Add/Edit task modal -->
+    <div id="taskModal" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-5 bg-black/50">
+      <div class="bg-fog-50 dark:bg-emerald-950 rounded-2xl p-6 w-full max-w-md border border-gold-500/20">
+        <h4 class="font-display text-lg font-semibold mb-4">Add Task</h4>
+        <form onsubmit="return saveTask(event)" class="space-y-3">
+          <input required id="taskTitle" placeholder="Task Title" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+          <textarea id="taskDesc" placeholder="Description (optional)" rows="3" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500"></textarea>
+          <select id="taskAssignType" onchange="toggleTaskAssignType()" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+            <option value="class">Assign to whole Class</option>
+            <option value="student">Assign to one Student</option>
+          </select>
+          <select id="taskClass" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+            <option value="">— Select Class —</option>
+          </select>
+          <select id="taskStudent" class="hidden w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+            <option value="">— Select Student —</option>
+          </select>
+          <input type="date" id="taskDue" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+          <div class="flex gap-3 pt-2">
+            <button type="button" onclick="closeTaskModal()" class="flex-1 py-2.5 rounded-lg font-semibold text-sm border border-gold-500/40">Cancel</button>
             <button class="flex-1 btn-gold py-2.5 rounded-lg font-semibold text-sm">Save</button>
           </div>
         </form>
@@ -1715,6 +1835,10 @@ function switchAdminTab(tab){
   if(tab === 'students') loadAdminStudents();
   if(tab === 'teachers') loadAdminTeachers();
   if(tab === 'approvals') loadAdminApprovals();
+  if(tab === 'classes') loadAdminClasses();
+  if(tab === 'attendance') loadAdminAttendance();
+  if(tab === 'tasks') loadAdminTasks();
+  if(tab === 'reports') loadAdminReports();
 }
 
 async function loadAdminDashboard(){
@@ -1867,6 +1991,224 @@ async function rejectUser(id){
   if(error){ alert('Could not reject: ' + error.message); return; }
   loadAdminApprovals();
   loadAdminDashboard();
+}
+
+/* ================= CLASSES / ATTENDANCE / TASKS / REPORTS ================= */
+
+const COURSE_OPTIONS = ['Noorani Qaida','Quran Reading','Quran with Tajweed','Hifz-ul-Quran','Translation of Quran','Tafseer','Hadith Studies','Fiqh','Fiqh al-Muamalat','Islamic Banking','Islamic Inheritance','Arabic Language','Islamic Studies','Seerah of Prophet ﷺ','Islamic History','Daily Duas','Namaz Course','Kids Islamic Course',"Women's Islamic Course",'Weekend Courses','Ramadan Special Course'];
+
+let adminClassesStudentsCache = [];
+let adminTeachersCache = [];
+
+async function loadAdminClasses(){
+  const tbody = document.getElementById('admClassesTableBody');
+  tbody.innerHTML = '<tr><td colspan="5" class="py-6 text-center opacity-60 text-sm">Loading…</td></tr>';
+  const { data: students, error } = await supabaseClient.from('students').select('*').order('name');
+  const { data: teachers } = await supabaseClient.from('users').select('*').eq('role','teacher').eq('approved', true);
+  adminTeachersCache = teachers || [];
+  if(error){ tbody.innerHTML = '<tr><td colspan="5" class="py-6 text-center text-red-500 text-sm">Could not load students.</td></tr>'; return; }
+  adminClassesStudentsCache = students || [];
+  if(adminClassesStudentsCache.length===0){ tbody.innerHTML = '<tr><td colspan="5" class="py-6 text-center opacity-60 text-sm">No students yet.</td></tr>'; return; }
+  tbody.innerHTML = adminClassesStudentsCache.map(s => {
+    const teacherName = (adminTeachersCache.find(t => t.id === s.teacher_id) || {}).name;
+    return `<tr class="border-b border-gold-500/10 last:border-0">
+      <td class="py-3 px-4 font-medium">${s.name || '—'}</td>
+      <td class="py-3 px-4 opacity-80">${s.class || '—'}</td>
+      <td class="py-3 px-4 opacity-80">${s.course || '<span class=\"opacity-50\">Not assigned</span>'}</td>
+      <td class="py-3 px-4 opacity-80">${teacherName || '<span class=\"opacity-50\">Not assigned</span>'}</td>
+      <td class="py-3 px-4 text-right"><button onclick="openAssignModal('${s.id}')" class="btn-gold px-3 py-1.5 rounded-lg text-xs font-semibold">Assign</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function openAssignModal(studentId){
+  const s = adminClassesStudentsCache.find(x => x.id === studentId);
+  if(!s) return;
+  document.getElementById('assignStudentId').value = s.id;
+  document.getElementById('assignStudentName').textContent = s.name + (s.class ? ' — ' + s.class : '');
+  const courseSel = document.getElementById('assignCourse');
+  courseSel.innerHTML = '<option value="">— Select Course —</option>' + COURSE_OPTIONS.map(c => `<option value="${c}" ${s.course===c?'selected':''}>${c}</option>`).join('');
+  const teacherSel = document.getElementById('assignTeacher');
+  teacherSel.innerHTML = '<option value="">— Select Teacher —</option>' + adminTeachersCache.map(t => `<option value="${t.id}" ${s.teacher_id===t.id?'selected':''}>${t.name}</option>`).join('');
+  document.getElementById('assignModal').classList.remove('hidden');
+}
+
+function closeAssignModal(){
+  document.getElementById('assignModal').classList.add('hidden');
+}
+
+async function saveAssign(e){
+  e.preventDefault();
+  const id = document.getElementById('assignStudentId').value;
+  const course = document.getElementById('assignCourse').value || null;
+  const teacher_id = document.getElementById('assignTeacher').value || null;
+  const { error } = await supabaseClient.from('students').update({ course, teacher_id }).eq('id', id);
+  if(error){ alert('Could not save: ' + error.message); return false; }
+  closeAssignModal();
+  loadAdminClasses();
+  return false;
+}
+
+async function loadAdminAttendance(){
+  const dateInput = document.getElementById('admAttendanceDate');
+  if(!dateInput.value) dateInput.value = new Date().toISOString().slice(0,10);
+  const date = dateInput.value;
+  const tbody = document.getElementById('admAttendanceTableBody');
+  tbody.innerHTML = '<tr><td colspan="3" class="py-6 text-center opacity-60 text-sm">Loading…</td></tr>';
+  const { data: students, error } = await supabaseClient.from('students').select('*').order('name');
+  if(error){ tbody.innerHTML = '<tr><td colspan="3" class="py-6 text-center text-red-500 text-sm">Could not load students.</td></tr>'; return; }
+  if(!students || students.length===0){ tbody.innerHTML = '<tr><td colspan="3" class="py-6 text-center opacity-60 text-sm">No students yet.</td></tr>'; return; }
+  const { data: existing } = await supabaseClient.from('attendance').select('*').eq('date', date);
+  const existingMap = {};
+  (existing||[]).forEach(r => existingMap[r.student_id] = r.status);
+  tbody.innerHTML = students.map(s => {
+    const current = existingMap[s.id] || 'present';
+    return `<tr class="border-b border-gold-500/10 last:border-0" data-student-id="${s.id}">
+      <td class="py-3 px-4 font-medium">${s.name || '—'}</td>
+      <td class="py-3 px-4 opacity-80">${s.class || '—'}</td>
+      <td class="py-3 px-4">
+        <select class="att-status px-3 py-1.5 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500">
+          <option value="present" ${current==='present'?'selected':''}>Present</option>
+          <option value="absent" ${current==='absent'?'selected':''}>Absent</option>
+          <option value="leave" ${current==='leave'?'selected':''}>Leave</option>
+        </select>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function saveAdminAttendance(){
+  const date = document.getElementById('admAttendanceDate').value;
+  if(!date){ alert('Please select a date first.'); return; }
+  const rows = [...document.querySelectorAll('#admAttendanceTableBody tr[data-student-id]')].map(tr => ({
+    student_id: tr.dataset.studentId,
+    date,
+    status: tr.querySelector('.att-status').value
+  }));
+  if(rows.length===0) return;
+  const { error } = await supabaseClient.from('attendance').upsert(rows, { onConflict: 'student_id,date' });
+  if(error){ alert('Could not save attendance: ' + error.message); return; }
+  alert('Attendance saved for ' + date);
+}
+
+let adminTasksCache = [];
+
+function toggleTaskAssignType(){
+  const type = document.getElementById('taskAssignType').value;
+  document.getElementById('taskClass').classList.toggle('hidden', type !== 'class');
+  document.getElementById('taskStudent').classList.toggle('hidden', type !== 'student');
+}
+
+function openTaskModal(){
+  document.getElementById('taskTitle').value = '';
+  document.getElementById('taskDesc').value = '';
+  document.getElementById('taskAssignType').value = 'class';
+  document.getElementById('taskDue').value = '';
+  const classes = [...new Set(adminClassesStudentsCache.map(s => s.class).filter(Boolean))];
+  document.getElementById('taskClass').innerHTML = '<option value="">— Select Class —</option>' + classes.map(c => `<option value="${c}">${c}</option>`).join('');
+  document.getElementById('taskStudent').innerHTML = '<option value="">— Select Student —</option>' + adminClassesStudentsCache.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+  toggleTaskAssignType();
+  document.getElementById('taskModal').classList.remove('hidden');
+}
+
+function closeTaskModal(){
+  document.getElementById('taskModal').classList.add('hidden');
+}
+
+async function saveTask(e){
+  e.preventDefault();
+  const type = document.getElementById('taskAssignType').value;
+  const payload = {
+    title: document.getElementById('taskTitle').value.trim(),
+    description: document.getElementById('taskDesc').value.trim() || null,
+    due_date: document.getElementById('taskDue').value || null,
+    class: type === 'class' ? (document.getElementById('taskClass').value || null) : null,
+    student_id: type === 'student' ? (document.getElementById('taskStudent').value || null) : null,
+    status: 'pending'
+  };
+  const { error } = await supabaseClient.from('tasks').insert(payload);
+  if(error){ alert('Could not save task: ' + error.message); return false; }
+  closeTaskModal();
+  loadAdminTasks();
+  return false;
+}
+
+async function loadAdminTasks(){
+  if(adminClassesStudentsCache.length===0){
+    const { data: students } = await supabaseClient.from('students').select('*').order('name');
+    adminClassesStudentsCache = students || [];
+  }
+  const tbody = document.getElementById('admTasksTableBody');
+  tbody.innerHTML = '<tr><td colspan="5" class="py-6 text-center opacity-60 text-sm">Loading…</td></tr>';
+  const { data: rows, error } = await supabaseClient.from('tasks').select('*').order('due_date', { ascending: true });
+  if(error){ tbody.innerHTML = '<tr><td colspan="5" class="py-6 text-center text-red-500 text-sm">Could not load tasks.</td></tr>'; return; }
+  adminTasksCache = rows || [];
+  if(adminTasksCache.length===0){ tbody.innerHTML = '<tr><td colspan="5" class="py-6 text-center opacity-60 text-sm">No tasks yet — click "Add Task" to create one.</td></tr>'; return; }
+  tbody.innerHTML = adminTasksCache.map(t => {
+    const forWhom = t.student_id
+      ? ((adminClassesStudentsCache.find(s => s.id === t.student_id) || {}).name || 'Student')
+      : (t.class ? 'Class: ' + t.class : 'All');
+    const statusBadge = t.status === 'completed'
+      ? '<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">Completed</span>'
+      : '<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-gold-500/15 text-gold-700 dark:text-gold-400">Pending</span>';
+    return `<tr class="border-b border-gold-500/10 last:border-0">
+      <td class="py-3 px-4 font-medium">${t.title}</td>
+      <td class="py-3 px-4 opacity-80">${forWhom}</td>
+      <td class="py-3 px-4 opacity-80">${t.due_date || '—'}</td>
+      <td class="py-3 px-4">${statusBadge}</td>
+      <td class="py-3 px-4 text-right space-x-2 whitespace-nowrap">
+        <button onclick="toggleTaskStatus('${t.id}','${t.status}')" title="Toggle status" class="hover:text-gold-500">✅</button>
+        <button onclick="deleteTask('${t.id}')" title="Delete" class="hover:text-red-500">🗑️</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function toggleTaskStatus(id, currentStatus){
+  const newStatus = currentStatus === 'completed' ? 'pending' : 'completed';
+  const { error } = await supabaseClient.from('tasks').update({ status: newStatus }).eq('id', id);
+  if(error){ alert('Could not update: ' + error.message); return; }
+  loadAdminTasks();
+}
+
+async function deleteTask(id){
+  if(!confirm('Delete this task?')) return;
+  const { error } = await supabaseClient.from('tasks').delete().eq('id', id);
+  if(error){ alert('Could not delete: ' + error.message); return; }
+  loadAdminTasks();
+}
+
+async function loadAdminReports(){
+  const { data: students } = await supabaseClient.from('students').select('*');
+  const { data: tasks } = await supabaseClient.from('tasks').select('*');
+  const since = new Date(); since.setDate(since.getDate() - 30);
+  const sinceStr = since.toISOString().slice(0,10);
+  const { data: attendance } = await supabaseClient.from('attendance').select('*').gte('date', sinceStr);
+
+  const studentsRows = students || [];
+  const tasksRows = tasks || [];
+  const attRows = attendance || [];
+
+  document.getElementById('admRepTotalStudents').textContent = studentsRows.length;
+  document.getElementById('admRepTasksDone').textContent = tasksRows.filter(t => t.status === 'completed').length;
+  document.getElementById('admRepTasksPending').textContent = tasksRows.filter(t => t.status !== 'completed').length;
+
+  const overallRate = attRows.length ? Math.round(100 * attRows.filter(a => a.status === 'present').length / attRows.length) : 0;
+  document.getElementById('admRepAttendanceRate').textContent = attRows.length ? overallRate + '%' : 'No data';
+
+  const classes = [...new Set(studentsRows.map(s => s.class).filter(Boolean))];
+  const tbody = document.getElementById('admReportsTableBody');
+  if(classes.length===0){ tbody.innerHTML = '<tr><td colspan="3" class="py-6 text-center opacity-60 text-sm">No class data yet.</td></tr>'; return; }
+  tbody.innerHTML = classes.map(cls => {
+    const classStudentIds = studentsRows.filter(s => s.class === cls).map(s => s.id);
+    const classAtt = attRows.filter(a => classStudentIds.includes(a.student_id));
+    const rate = classAtt.length ? Math.round(100 * classAtt.filter(a => a.status === 'present').length / classAtt.length) : null;
+    return `<tr class="border-b border-gold-500/10 last:border-0">
+      <td class="py-3 px-4 font-medium">${cls}</td>
+      <td class="py-3 px-4 opacity-80">${classStudentIds.length}</td>
+      <td class="py-3 px-4 opacity-80">${rate === null ? 'No data' : rate + '%'}</td>
+    </tr>`;
+  }).join('');
 }
 
 /* ================= END ADMIN DASHBOARD ================= */
