@@ -140,6 +140,36 @@
   .book-cover{ background:linear-gradient(160deg,#0B6E4F,#031f16); }
   .glass{ background:rgba(255,255,255,0.06); backdrop-filter:blur(14px); }
   input,select,textarea{ font-family:inherit; }
+
+  /* ---------- Quran & Hadith Search tool ---------- */
+  .result-card{ background:#fff; border:1px solid rgba(212,175,55,.22); border-radius:1rem; transition:box-shadow .3s ease, transform .3s ease, border-color .3s ease; }
+  .dark .result-card{ background:rgba(255,255,255,.03); border-color:rgba(212,175,55,.16); }
+  .result-card:hover{ box-shadow:0 12px 32px -12px rgba(3,31,22,.18); border-color:rgba(212,175,55,.4); }
+  .verse-badge{ display:inline-flex; align-items:center; gap:.4rem; background:rgba(11,110,79,.08); border:1px solid rgba(212,175,55,.3); border-radius:9999px; padding:.3rem .85rem; font-size:.72rem; font-weight:600; color:#0B6E4F; white-space:nowrap; }
+  .dark .verse-badge{ background:rgba(212,175,55,.08); color:#e3c568; }
+  .motif-dot{ display:inline-block; width:18px; height:18px; flex-shrink:0; }
+  mark.hit{ background:linear-gradient(135deg,#e3c568,#D4AF37); color:#031f16; padding:0 .2em; border-radius:.25em; font-weight:600; }
+  .spinner{ width:34px; height:34px; border-radius:50%; border:3px solid rgba(212,175,55,.25); border-top-color:#D4AF37; animation:spin .8s linear infinite; }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  .loading-row{ display:flex; flex-direction:column; align-items:center; justify-content:center; gap:.9rem; padding:3rem 1rem; }
+  .tafseer-panel{ max-height:0; overflow:hidden; transition:max-height .4s ease; }
+  .tafseer-panel.open{ max-height:1200px; }
+  .chev-icon{ transition:transform .25s ease; }
+  .tafseer-toggle[aria-expanded="true"] .chev-icon{ transform:rotate(180deg); }
+  .isnad-divider{ display:flex; align-items:center; gap:6px; margin:.35rem 0; }
+  .isnad-divider .seg{ height:1px; flex:1; background:linear-gradient(90deg,transparent,rgba(212,175,55,.5),transparent); }
+  .isnad-divider .node{ width:5px; height:5px; border-radius:50%; background:#D4AF37; flex-shrink:0; }
+  .grade-pill{ font-size:.68rem; font-weight:700; letter-spacing:.02em; padding:.2rem .6rem; border-radius:9999px; border:1px solid currentColor; }
+  .book-chip{ cursor:pointer; user-select:none; border:1px solid rgba(212,175,55,.3); border-radius:9999px; padding:.5rem 1rem; font-size:.78rem; font-weight:600; transition:all .2s ease; background:transparent; }
+  .book-chip[aria-pressed="true"]{ background:linear-gradient(135deg,#e3c568,#D4AF37); color:#031f16; border-color:transparent; }
+  .dark .book-chip{ color:#F0F2EF; }
+  .dark .book-chip[aria-pressed="true"]{ color:#031f16; }
+  .search-tab-panel{ display:none; }
+  .search-tab-panel.active{ display:block; animation:fadeIn .4s ease; }
+  .search-tab-btn{ position:relative; }
+  .search-tab-btn[aria-selected="true"]{ color:#0B6E4F; }
+  .dark .search-tab-btn[aria-selected="true"]{ color:#e3c568; }
+  .search-tab-btn[aria-selected="true"]::after{ content:''; position:absolute; left:.5rem; right:.5rem; bottom:-2px; height:2px; background:linear-gradient(90deg,#D4AF37,#e3c568); border-radius:2px; }
 </style>
 </head>
 
@@ -185,7 +215,8 @@
         </span>
         <div class="dropdown absolute top-full left-0 pt-3">
           <div class="bg-fog-50 dark:bg-emerald-900 rounded-xl shadow-2xl border border-gold-500/20 py-2 w-56 overflow-hidden">
-            <a onclick="navigate('tools')" href="#tools" class="dropdown-item flex items-center gap-2.5 px-4 py-2.5 text-sm hover:text-emerald-900 dark:hover:text-gold-400">Quran Search</a>
+            <a onclick="navigateToTool('quran')" href="#tools" class="dropdown-item flex items-center gap-2.5 px-4 py-2.5 text-sm hover:text-emerald-900 dark:hover:text-gold-400">Quran Search</a>
+            <a onclick="navigateToTool('hadith')" href="#tools" class="dropdown-item flex items-center gap-2.5 px-4 py-2.5 text-sm hover:text-emerald-900 dark:hover:text-gold-400">Hadith Search</a>
             <a onclick="navigate('tools')" href="#tools" class="dropdown-item flex items-center gap-2.5 px-4 py-2.5 text-sm hover:text-emerald-900 dark:hover:text-gold-400">Prayer Times</a>
             <a onclick="navigate('tools')" href="#tools" class="dropdown-item flex items-center gap-2.5 px-4 py-2.5 text-sm hover:text-emerald-900 dark:hover:text-gold-400">Zakat Calculator</a>
             <a onclick="navigate('tools')" href="#tools" class="dropdown-item flex items-center gap-2.5 px-4 py-2.5 text-sm hover:text-emerald-900 dark:hover:text-gold-400">Inheritance Calculator</a>
@@ -233,6 +264,8 @@
     <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gold-500/10 transition" onclick="navigate('blog')" href="#blog">✍️ Blog</a>
     <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gold-500/10 transition" onclick="navigate('media')" href="#media">🎬 Media Center</a>
     <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gold-500/10 transition" onclick="navigate('tools')" href="#tools">🛠️ Tools</a>
+    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gold-500/10 transition" onclick="navigateToTool('quran')" href="#tools">📖 Quran Search</a>
+    <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gold-500/10 transition" onclick="navigateToTool('hadith')" href="#tools">📜 Hadith Search</a>
     <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gold-500/10 transition" onclick="navigate('contact')" href="#contact">✉️ Contact</a>
     <select onchange="setLang(this.value)" class="w-full text-sm bg-transparent border border-gold-500/40 rounded-lg px-3 py-2 mt-3">
       <option value="en">English</option><option value="ur">اردو</option><option value="ar">العربية</option>
@@ -575,26 +608,46 @@
 
   <div class="max-w-7xl mx-auto px-5 md:px-8 py-16 grid lg:grid-cols-2 gap-8">
 
-    <!-- Quran Search -->
-    <div class="reveal bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-7 border border-gold-500/20">
-      <h3 class="font-display text-xl font-semibold mb-1">Quran Search</h3>
-      <p class="text-xs opacity-60 mb-4">Live search powered by the AlQuran Cloud API (English translation).</p>
-      <form onsubmit="return runQuranSearch(event)" class="flex gap-2">
-        <input id="quranQuery" required placeholder="e.g. patience, mercy, fasting" class="flex-1 px-4 py-3 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
-        <button class="btn-gold px-5 rounded-lg font-semibold">Search</button>
-      </form>
-      <div id="quranResults" class="mt-4 space-y-3 max-h-72 overflow-y-auto text-sm"></div>
-    </div>
+    <!-- Quran & Hadith Search (combined, tabbed) -->
+    <div id="tool-search" class="reveal bg-fog-100 dark:bg-emerald-900/60 rounded-2xl border border-gold-500/20 lg:col-span-2 overflow-hidden">
+      <div class="bg-emerald-900 dark:bg-emerald-950 islamic-pattern-dense px-6 md:px-8 py-8 text-center">
+        <h3 class="font-display text-xl md:text-2xl font-semibold text-fog-50">Quran &amp; Hadith Search</h3>
+        <p class="font-urdu text-fog-100/80 text-sm mt-1" dir="rtl">قرآن و حدیث تلاش کریں</p>
+        <div role="tablist" aria-label="Search tool" class="mt-5 inline-flex bg-fog-50/10 border border-gold-500/25 rounded-full p-1 gap-1">
+          <button id="tabBtnQuran" role="tab" aria-selected="true" aria-controls="panelQuran" class="search-tab-btn px-5 py-2 rounded-full text-sm font-semibold text-fog-50" onclick="switchSearchTab('quran')">📖 Quran</button>
+          <button id="tabBtnHadith" role="tab" aria-selected="false" aria-controls="panelHadith" class="search-tab-btn px-5 py-2 rounded-full text-sm font-semibold text-fog-50" onclick="switchSearchTab('hadith')">📜 Hadith</button>
+        </div>
+      </div>
 
-    <!-- Tafseer Search -->
-    <div class="reveal bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-7 border border-gold-500/20 lg:col-span-2">
-      <h3 class="font-display text-xl font-semibold mb-1">Tafseer Search</h3>
-      <p class="text-xs opacity-60 mb-4">Type a word or sentence in Urdu or Arabic to find matching verses. Select a Tafseer from the menu under each verse to read its detailed explanation.</p>
-      <form onsubmit="return runTafseerSearch(event)" class="flex gap-2">
-        <input id="tafseerQuery" required dir="auto" placeholder="مثلاً: صبر، رحمت، نماز — یا عربی میں لکھیں" class="flex-1 px-4 py-3 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500 font-urdu">
-        <button class="btn-gold px-5 rounded-lg font-semibold shrink-0">Search</button>
-      </form>
-      <div id="tafseerResults" class="mt-4 space-y-4 max-h-[32rem] overflow-y-auto text-sm"></div>
+      <div class="p-6 md:p-8">
+        <!-- Quran panel -->
+        <section id="panelQuran" role="tabpanel" aria-labelledby="tabBtnQuran" class="search-tab-panel active">
+          <p class="text-xs opacity-60 mb-4">Koi lafz ya jumla Urdu ya Arabic mein likhein — us se milti julti ayat, uski surah/ayat number, Arabic text, Urdu tarjuma aur تفسیر sath mil jayega.</p>
+          <form onsubmit="return runQuranSearch(event)" class="flex flex-col sm:flex-row gap-2">
+            <input id="quranQuery" required dir="auto" autocomplete="off" placeholder="مثلاً: صبر، رحمت — یا وَ هُوَ الۡعَلِىُّ الۡعَظِيۡمُ" class="flex-1 px-4 py-3 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500 font-urdu">
+            <button class="btn-gold px-5 py-3 rounded-lg font-semibold shrink-0">تلاش کریں</button>
+          </form>
+          <p id="resultCount" class="text-xs opacity-60 mt-2 font-urdu" dir="rtl"></p>
+          <div id="quranResults" class="mt-4 space-y-4 max-h-[36rem] overflow-y-auto text-sm">
+            <div class="loading-row"><span class="text-3xl">📖</span><p class="text-sm opacity-60 font-urdu text-center max-w-sm" dir="rtl">تلاش شروع کرنے کے لیے اوپر کوئی لفظ یا آیت درج کریں۔</p></div>
+          </div>
+        </section>
+
+        <!-- Hadith panel -->
+        <section id="panelHadith" role="tabpanel" aria-labelledby="tabBtnHadith" class="search-tab-panel">
+          <p class="text-xs opacity-60 mb-4">Kitab chunein (ya "تمام کتب") aur koi lafz ya jumla likhein — Arabic text, poora Urdu tarjuma, aur hawala (kitab، باب، حدیث نمبر) sath mil jayega.</p>
+          <form onsubmit="return runHadithSearch(event)">
+            <input id="hadithQuery" required dir="auto" autocomplete="off" placeholder="مثلاً: نیت — یا انما الاعمال بالنيات" class="w-full px-4 py-3 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500 font-urdu">
+            <div id="bookChips" class="flex flex-wrap gap-2 mt-3"></div>
+            <button class="btn-gold px-5 py-3 rounded-lg font-semibold mt-3 w-full sm:w-auto">تلاش کریں</button>
+            <p class="text-[11px] opacity-50 mt-2">"تمام کتب" (All Books) search fetches every collection and may take a few extra seconds the first time.</p>
+          </form>
+          <p id="hadithResultCount" class="text-xs opacity-60 mt-2 font-urdu" dir="rtl"></p>
+          <div id="hadithResults" class="mt-4 space-y-4 max-h-[36rem] overflow-y-auto text-sm">
+            <div class="loading-row"><span class="text-3xl">📜</span><p class="text-sm opacity-60 font-urdu text-center max-w-sm" dir="rtl">تلاش شروع کرنے کے لیے اوپر کوئی لفظ یا جملہ درج کریں۔</p></div>
+          </div>
+        </section>
+      </div>
     </div>
 
     <!-- Prayer Times -->
@@ -5194,61 +5247,71 @@ function startCounters(container){
   });
 }
 
-/* ---------------- TOOLS: QURAN SEARCH ---------------- */
-async function runQuranSearch(e){
-  e.preventDefault();
-  const q = document.getElementById('quranQuery').value.trim();
-  const box = document.getElementById('quranResults');
-  if(!q) return false;
-  box.innerHTML = '<p class="opacity-60">Searching...</p>';
-  try{
-    const res = await fetch(`https://api.alquran.cloud/v1/search/${encodeURIComponent(q)}/all/en`);
-    const data = await res.json();
-    if(data.code===200 && data.data.matches.length){
-      box.innerHTML = data.data.matches.slice(0,8).map(m=>`
-        <div class="border-b border-gold-500/15 pb-2">
-          <p class="text-xs text-gold-600 dark:text-gold-400 font-semibold">Surah ${m.surah.englishName} (${m.surah.number}:${m.numberInSurah})</p>
-          <p class="opacity-80">${m.text}</p>
-        </div>`).join('');
-    } else {
-      box.innerHTML = '<p class="opacity-60">No matches found — try a different keyword.</p>';
-    }
-  }catch(err){
-    box.innerHTML = '<p class="opacity-60">Could not reach the search service right now. Please try again shortly.</p>';
-  }
-  return false;
+/* ---------------- TOOLS: QURAN & HADITH SEARCH (combined, tabbed) ---------------- */
+function navigateToTool(tab){
+  navigate('tools');
+  switchSearchTab(tab);
+  setTimeout(()=>{
+    const el = document.getElementById('tool-search');
+    if(el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 150);
 }
 
-/* ---------------- TOOLS: TAFSEER SEARCH (Urdu/Arabic) ---------------- */
+function switchSearchTab(name){
+  const isQuran = name === 'quran';
+  document.getElementById('panelQuran').classList.toggle('active', isQuran);
+  document.getElementById('panelHadith').classList.toggle('active', !isQuran);
+  document.getElementById('tabBtnQuran').setAttribute('aria-selected', String(isQuran));
+  document.getElementById('tabBtnHadith').setAttribute('aria-selected', String(!isQuran));
+}
+
+function escapeHtml(str){
+  return String(str).replace(/[&<>"']/g, ch => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[ch]));
+}
+// Wraps the first match of `query` inside `text` with <mark class="hit">. Falls back to
+// plain (escaped) text if no exact substring is found — common for Arabic diacritic variants.
+function highlight(text, query){
+  const safeText = escapeHtml(text);
+  const q = query.trim();
+  if(!q) return safeText;
+  const idx = safeText.toLowerCase().indexOf(escapeHtml(q).toLowerCase());
+  if(idx === -1) return safeText;
+  return safeText.slice(0, idx) + '<mark class="hit">' + safeText.slice(idx, idx + q.length) + '</mark>' + safeText.slice(idx + q.length);
+}
+function spinnerRow(label){ return `<div class="loading-row"><div class="spinner"></div><p class="text-sm opacity-60 font-urdu" dir="rtl">${label}</p></div>`; }
+function emptyRow(label){ return `<div class="loading-row"><span class="text-3xl">🔍</span><p class="text-sm opacity-60 font-urdu text-center max-w-xs" dir="rtl">${label}</p></div>`; }
+function errorRow(label){ return `<div class="loading-row"><span class="text-3xl">⚠️</span><p class="text-sm opacity-60 font-urdu text-center max-w-xs" dir="rtl">${label}</p></div>`; }
+
+/* ---- Quran search: AlQuran Cloud (search + ayah text) + spa5k tafsir_api ---- */
 const TAFSEER_EDITIONS = [
-  {group:'اردو تفاسیر', options:[
-    {slug:'ur-tafseer-ibn-e-kaseer', label:'تفسیر ابنِ کثیر (اردو)'},
-    {slug:'ur-tafsir-bayan-ul-quran', label:'بیان القرآن — ڈاکٹر اسرار احمد'},
-    {slug:'ur-tazkirul-quran', label:'تذکیر القرآن — وحید الدین خان'}
+  { group: 'اردو تفاسیر', options: [
+    { slug: 'ur-tafseer-ibn-e-kaseer', label: 'تفسیر ابنِ کثیر (اردو)' },
+    { slug: 'ur-tafsir-bayan-ul-quran', label: 'بیان القرآن — ڈاکٹر اسرار احمد' },
+    { slug: 'ur-tazkirul-quran', label: 'تذکیر القرآن — وحید الدین خان' },
   ]},
-  {group:'عربی تفاسیر', options:[
-    {slug:'ar-tafsir-muyassar', label:'التفسير الميسر'},
-    {slug:'ar-tafsir-ibn-kathir', label:'تفسير ابن كثير'},
-    {slug:'ar-tafseer-al-qurtubi', label:'تفسير القرطبي'},
-    {slug:'ar-tafsir-al-tabari', label:'تفسير الطبري'},
-    {slug:'ar-tafsir-al-baghawi', label:'تفسير البغوي'},
-    {slug:'ar-tafseer-al-saddi', label:'تفسير السعدي'}
-  ]}
+  { group: 'عربی تفاسیر', options: [
+    { slug: 'ar-tafsir-muyassar', label: 'التفسير الميسر' },
+    { slug: 'ar-tafsir-ibn-kathir', label: 'تفسير ابن كثير' },
+    { slug: 'ar-tafseer-al-qurtubi', label: 'تفسير القرطبي' },
+    { slug: 'ar-tafsir-al-tabari', label: 'تفسير الطبري' },
+    { slug: 'ar-tafsir-al-baghawi', label: 'تفسير البغوي' },
+    { slug: 'ar-tafseer-al-saddi', label: 'تفسير السعدي' },
+  ]},
 ];
+const DEFAULT_TAFSEER_SLUG = 'ur-tafseer-ibn-e-kaseer';
+const tafseerCache = {};
 
-function tafseerSelectHtml(surah, ayah){
-  const opts = TAFSEER_EDITIONS.map(g=>`<optgroup label="${g.group}">${g.options.map(o=>`<option value="${o.slug}">${o.label}</option>`).join('')}</optgroup>`).join('');
-  return `<select dir="rtl" onchange="loadTafseer(this,${surah},${ayah})" class="font-urdu flex-1 text-xs px-3 py-2 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
-    <option value="">— تفسیر منتخب کریں —</option>${opts}
-  </select>`;
-}
+async function runQuranSearch(e){
+  if(e) e.preventDefault();
+  const input = document.getElementById('quranQuery');
+  const q = input.value.trim();
+  const box = document.getElementById('quranResults');
+  const count = document.getElementById('resultCount');
+  if(!q){ input.focus(); return false; }
 
-async function runTafseerSearch(e){
-  e.preventDefault();
-  const q = document.getElementById('tafseerQuery').value.trim();
-  const box = document.getElementById('tafseerResults');
-  if(!q) return false;
-  box.innerHTML = '<p class="opacity-60 font-urdu" dir="rtl">تلاش جاری ہے...</p>';
+  box.innerHTML = spinnerRow('تلاش جاری ہے...');
+  if(count) count.textContent = '';
+
   try{
     const [arRes, urRes] = await Promise.all([
       fetch(`https://api.alquran.cloud/v1/search/${encodeURIComponent(q)}/all/ar`).then(r=>r.json()).catch(()=>null),
@@ -5266,44 +5329,201 @@ async function runTafseerSearch(e){
     });
 
     if(!uniq.length){
-      box.innerHTML = '<p class="opacity-60 font-urdu" dir="rtl">کوئی نتیجہ نہیں ملا — کوئی اور لفظ آزمائیں۔</p>';
+      box.innerHTML = emptyRow('کوئی نتیجہ نہیں ملا — کوئی اور لفظ یا مختصر آیت آزمائیں۔');
       return false;
     }
 
-    box.innerHTML = uniq.slice(0,6).map(m=>{
+    const top = uniq.slice(0,15);
+    const combined = await Promise.all(top.map(m =>
+      fetch(`https://api.alquran.cloud/v1/ayah/${m.surah.number}:${m.numberInSurah}/editions/quran-uthmani,ur.jalandhry`)
+        .then(r=>r.json()).catch(()=>null)
+    ));
+
+    if(count) count.textContent = `${uniq.length} نتائج ملے — سب سے قریبی ${top.length} دکھائے جا رہے ہیں`;
+
+    box.innerHTML = top.map((m, i) => {
+      const c = combined[i];
+      let arabicText = m.text, urduText = '';
+      if(c && c.code===200 && Array.isArray(c.data)){
+        const arEd = c.data.find(d => d.edition.identifier === 'quran-uthmani');
+        const urEd = c.data.find(d => d.edition.identifier === 'ur.jalandhry');
+        if(arEd) arabicText = arEd.text;
+        if(urEd) urduText = urEd.text;
+      }
       const surah = m.surah.number, ayah = m.numberInSurah;
-      const key = surah+'_'+ayah;
-      const isArabic = /[\u0600-\u06FF]/.test(m.text);
+      const cardId = `q_${surah}_${ayah}`;
       return `
-      <div class="border border-gold-500/20 rounded-xl p-4 space-y-3">
-        <p class="text-xs text-gold-600 dark:text-gold-400 font-semibold font-urdu" dir="rtl">سورہ ${m.surah.englishName} (${surah}:${ayah})</p>
-        <p class="text-lg leading-loose ${isArabic ? 'font-arabic' : 'font-urdu'}" dir="rtl">${m.text}</p>
-        <div class="flex flex-wrap items-center gap-2">
-          ${tafseerSelectHtml(surah, ayah)}
+      <div class="result-card p-4 md:p-5 space-y-3" id="${cardId}">
+        <div class="flex items-center justify-between gap-3 flex-wrap">
+          <span class="verse-badge">
+            <svg class="motif-dot" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="1.3"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z"/></svg>
+            سورہ ${escapeHtml(m.surah.englishName)} — ${surah}:${ayah}
+          </span>
+          <span class="text-xs opacity-50 font-urdu" dir="rtl">${escapeHtml(m.surah.name)}</span>
         </div>
-        <div id="tafseerBox_${key}" class="hidden text-sm leading-relaxed font-urdu bg-fog-50 dark:bg-emerald-950 rounded-lg p-3 border border-gold-500/15" dir="rtl"></div>
+        <p class="text-xl leading-loose font-arabic text-right" dir="rtl">${highlight(arabicText, q)}</p>
+        ${urduText ? `<p class="text-sm leading-relaxed font-urdu opacity-90 text-right border-r-2 border-gold-500/30 pr-3" dir="rtl">${highlight(urduText, q)}</p>` : ''}
+        <div class="pt-1">
+          <button type="button" class="tafseer-toggle inline-flex items-center gap-2 text-xs font-semibold text-emerald-800 dark:text-gold-400 hover:underline"
+            aria-expanded="false" onclick="toggleTafseerPanel(this, ${surah}, ${ayah})">
+            <span class="font-urdu" dir="rtl">تفسیر (اردو)</span>
+            <svg class="chev-icon w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="m6 9 6 6 6-6"/></svg>
+          </button>
+          <div class="tafseer-panel" id="panel_${cardId}">
+            <div class="mt-3 space-y-3">
+              <select dir="rtl" class="font-urdu w-full text-xs px-3 py-2.5 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500"
+                onchange="loadTafseer(this.value, ${surah}, ${ayah}, 'body_${cardId}')">
+                ${tafseerOptionsHtml()}
+              </select>
+              <div id="body_${cardId}" class="text-sm leading-relaxed font-urdu bg-fog-50 dark:bg-emerald-950/60 rounded-lg p-3 border border-gold-500/15" dir="rtl"></div>
+            </div>
+          </div>
+        </div>
       </div>`;
     }).join('');
   }catch(err){
-    box.innerHTML = '<p class="opacity-60 font-urdu" dir="rtl">تلاش کی سروس تک رسائی نہیں ہو سکی، دوبارہ کوشش کریں۔</p>';
+    box.innerHTML = errorRow('تلاش کی سروس تک رسائی نہیں ہو سکی — انٹرنیٹ کنکشن چیک کر کے دوبارہ کوشش کریں۔');
   }
   return false;
 }
 
-async function loadTafseer(sel, surah, ayah){
-  const key = surah+'_'+ayah;
-  const out = document.getElementById('tafseerBox_'+key);
-  const slug = sel.value;
-  if(!slug){ out.classList.add('hidden'); out.innerHTML=''; return; }
-  out.classList.remove('hidden');
-  out.innerHTML = '<p class="opacity-60">لوڈ ہو رہا ہے...</p>';
+function tafseerOptionsHtml(){
+  return TAFSEER_EDITIONS.map(g=>`<optgroup label="${g.group}">${g.options.map(o=>`<option value="${o.slug}" ${o.slug===DEFAULT_TAFSEER_SLUG?'selected':''}>${o.label}</option>`).join('')}</optgroup>`).join('');
+}
+
+function toggleTafseerPanel(btn, surah, ayah){
+  const cardId = `q_${surah}_${ayah}`;
+  const panel = document.getElementById('panel_'+cardId);
+  const expanded = btn.getAttribute('aria-expanded') === 'true';
+  btn.setAttribute('aria-expanded', String(!expanded));
+  panel.classList.toggle('open', !expanded);
+  if(!expanded){
+    const body = document.getElementById('body_'+cardId);
+    if(body && !body.dataset.loaded) loadTafseer(DEFAULT_TAFSEER_SLUG, surah, ayah, 'body_'+cardId);
+  }
+}
+
+async function loadTafseer(slug, surah, ayah, targetId){
+  const out = document.getElementById(targetId);
+  if(!out) return;
+  const key = `${slug}_${surah}_${ayah}`;
+  if(tafseerCache[key]){ out.innerHTML = tafseerCache[key]; out.dataset.loaded = '1'; return; }
+  out.innerHTML = spinnerRow('تفسیر لوڈ ہو رہی ہے...');
   try{
     const res = await fetch(`https://cdn.jsdelivr.net/gh/spa5k/tafsir_api@main/tafsir/${slug}/${surah}/${ayah}.json`);
     const data = await res.json();
-    out.innerHTML = (data && data.text) ? `<p>${data.text}</p>` : '<p class="opacity-60">اس آیت کے لیے یہ تفسیر دستیاب نہیں۔ کوئی اور تفسیر منتخب کریں۔</p>';
+    const html = (data && data.text) ? `<p>${data.text}</p>` : `<p class="opacity-60">اس آیت کے لیے یہ تفسیر دستیاب نہیں — کوئی اور تفسیر منتخب کریں۔</p>`;
+    tafseerCache[key] = html;
+    out.innerHTML = html;
+    out.dataset.loaded = '1';
   }catch(err){
-    out.innerHTML = '<p class="opacity-60">تفسیر لوڈ نہیں ہو سکی، دوبارہ کوشش کریں۔</p>';
+    out.innerHTML = `<p class="opacity-60">تفسیر لوڈ نہیں ہو سکی، دوبارہ کوشش کریں۔</p>`;
   }
+}
+
+/* ---- Hadith search: fawazahmed0/hadith-api (Arabic + Urdu editions) ---- */
+const HADITH_BOOKS = [
+  { slug: 'bukhari',   ur: 'صحیح بخاری',     en: 'Sahih al-Bukhari' },
+  { slug: 'muslim',    ur: 'صحیح مسلم',      en: 'Sahih Muslim' },
+  { slug: 'abudawud',  ur: 'سنن ابوداؤد',     en: 'Sunan Abu Dawud' },
+  { slug: 'tirmidhi',  ur: 'جامع ترمذی',     en: 'Jami at-Tirmidhi' },
+  { slug: 'nasai',     ur: 'سنن نسائی',      en: "Sunan an-Nasa'i" },
+  { slug: 'ibnmajah',  ur: 'سنن ابن ماجہ',    en: 'Sunan Ibn Majah' },
+  { slug: 'malik',     ur: 'موطا امام مالک', en: 'Muwatta Malik' },
+];
+const hadithCache = {};
+let activeHadithBook = 'all';
+
+function hadithBookLabel(slug){ const b = HADITH_BOOKS.find(x=>x.slug===slug); return b ? b.ur : slug; }
+
+function renderBookChips(){
+  const wrap = document.getElementById('bookChips');
+  if(!wrap) return;
+  const chips = [{ slug:'all', ur:'تمام کتب' }, ...HADITH_BOOKS];
+  wrap.innerHTML = chips.map(b => `<button type="button" class="book-chip font-urdu" dir="rtl" aria-pressed="${b.slug===activeHadithBook}" onclick="selectHadithBook('${b.slug}')">${b.ur}</button>`).join('');
+}
+function selectHadithBook(slug){ activeHadithBook = slug; renderBookChips(); }
+
+async function loadHadithEdition(lang, slug){
+  const key = `${lang}-${slug}`;
+  if(hadithCache[key]) return hadithCache[key];
+  const res = await fetch(`https://cdn.jsdelivr.net/gh/fawazahmed0/hadith-api@1/editions/${lang}-${slug}.json`);
+  if(!res.ok) throw new Error('fetch failed: '+key);
+  const data = await res.json();
+  hadithCache[key] = data;
+  return data;
+}
+
+async function runHadithSearch(e){
+  if(e) e.preventDefault();
+  const input = document.getElementById('hadithQuery');
+  const q = input.value.trim();
+  const box = document.getElementById('hadithResults');
+  const count = document.getElementById('hadithResultCount');
+  if(!q){ input.focus(); return false; }
+
+  const booksToSearch = activeHadithBook === 'all' ? HADITH_BOOKS.map(b=>b.slug) : [activeHadithBook];
+  box.innerHTML = spinnerRow(booksToSearch.length > 1 ? 'تمام کتب میں تلاش جاری ہے، ذرا انتظار کریں...' : 'لوڈ ہو رہا ہے...');
+  if(count) count.textContent = '';
+
+  try{
+    const pairs = await Promise.all(booksToSearch.map(async slug => {
+      const [ara, urd] = await Promise.all([
+        loadHadithEdition('ara', slug).catch(()=>null),
+        loadHadithEdition('urd', slug).catch(()=>null),
+      ]);
+      return { slug, ara, urd };
+    }));
+
+    let results = [];
+    pairs.forEach(({ slug, ara, urd }) => {
+      if(!urd && !ara) return;
+      const urdList = urd ? urd.hadiths : [];
+      const araBynum = {};
+      if(ara) ara.hadiths.forEach(h => { araBynum[h.hadithnumber] = h.text; });
+      const sections = (urd && urd.metadata && urd.metadata.sections) || (ara && ara.metadata && ara.metadata.sections) || {};
+
+      const source = urdList.length ? urdList : (ara ? ara.hadiths : []);
+      source.forEach(h => {
+        const urduText = urd ? (urdList.find(x => x.hadithnumber === h.hadithnumber) || {}).text || '' : '';
+        const arabicText = araBynum[h.hadithnumber] || (urd ? '' : h.text) || '';
+        const haystack = (urduText + ' ' + arabicText).toLowerCase();
+        if(haystack.includes(q.toLowerCase())){
+          const chapterTitle = sections[String(h.reference.book)] || '';
+          const grade = (h.grades && h.grades.length) ? h.grades[0].grade : '';
+          results.push({ book: slug, bookLabel: hadithBookLabel(slug), number: h.hadithnumber, chapter: chapterTitle, arabicText, urduText, grade });
+        }
+      });
+    });
+
+    const total = results.length;
+    results = results.slice(0, 40);
+
+    if(!total){
+      box.innerHTML = emptyRow('کوئی حدیث نہیں ملی — کوئی اور لفظ یا مختصر جملہ آزمائیں۔');
+      return false;
+    }
+
+    if(count) count.textContent = `${total} نتائج ملے${total > results.length ? ' — پہلے ' + results.length + ' دکھائے جا رہے ہیں' : ''}`;
+
+    box.innerHTML = results.map(r => `
+      <div class="result-card p-4 md:p-5 space-y-2">
+        <div class="flex items-center justify-between gap-3 flex-wrap">
+          <span class="verse-badge">
+            <svg class="motif-dot" viewBox="0 0 24 24" fill="none" stroke="#D4AF37" stroke-width="1.3"><path d="M12 2 L14 10 L22 12 L14 14 L12 22 L10 14 L2 12 L10 10 Z"/></svg>
+            <span class="font-urdu" dir="rtl">${escapeHtml(r.bookLabel)} — حدیث نمبر ${r.number}${r.chapter ? ' · باب: ' + escapeHtml(r.chapter) : ''}</span>
+          </span>
+          ${r.grade ? `<span class="grade-pill text-emerald-700 dark:text-gold-400">${escapeHtml(r.grade)}</span>` : ''}
+        </div>
+        ${r.arabicText ? `<p class="text-lg leading-loose font-arabic text-right" dir="rtl">${highlight(r.arabicText, q)}</p>` : ''}
+        <div class="isnad-divider" aria-hidden="true"><span class="seg"></span><span class="node"></span><span class="seg"></span><span class="node"></span><span class="seg"></span></div>
+        ${r.urduText ? `<p class="text-sm leading-relaxed font-urdu text-right" dir="rtl">${highlight(r.urduText, q)}</p>` : `<p class="text-xs opacity-50 font-urdu text-right" dir="rtl">اردو ترجمہ دستیاب نہیں</p>`}
+      </div>
+    `).join('');
+  }catch(err){
+    box.innerHTML = errorRow('حدیث ڈیٹا لوڈ نہیں ہو سکا — انٹرنیٹ کنکشن چیک کر کے دوبارہ کوشش کریں۔');
+  }
+  return false;
 }
 
 /* ---------------- TOOLS: PRAYER TIMES ---------------- */
@@ -5430,6 +5650,7 @@ setHijriDate();
 observeReveals();
 startCounters(document);
 setAuthMode('login');
+renderBookChips();
 
 const initial = (location.hash||'#home').replace('#','');
 if(document.getElementById('page-'+initial)) navigate(initial); else navigate('home');
