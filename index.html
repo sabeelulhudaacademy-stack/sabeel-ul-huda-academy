@@ -60,6 +60,9 @@
      so new accounts can log in immediately without checking their inbox.
 ================================================================== -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
   const SUPABASE_URL = "https://mskkzepvfhyamuqghfoj.supabase.co";
   const SUPABASE_ANON_KEY = "sb_publishable_HeSxOie2h1tYCNyUmX6fhg_Zfnj7HY0";
@@ -702,18 +705,27 @@
 
     <!-- ---------- LOGIN / SIGNUP (shown when logged out) ---------- -->
     <div id="portalAuthBox" class="max-w-md mx-auto reveal">
-      <div class="flex justify-center gap-3 mb-8">
+      <div id="authModeTabs" class="flex justify-center gap-3 mb-8">
         <button onclick="setAuthMode('login')" id="authModeLoginBtn" class="portal-tab btn-gold px-6 py-2.5 rounded-full font-semibold text-sm">Login</button>
         <button onclick="setAuthMode('signup')" id="authModeSignupBtn" class="portal-tab px-6 py-2.5 rounded-full font-semibold text-sm border border-gold-500/40">Create Account</button>
       </div>
 
       <p id="portalAuthError" class="hidden bg-red-500/10 border border-red-500/30 text-red-600 dark:text-red-400 text-sm rounded-xl p-3 mb-4 text-center"></p>
+      <p id="portalAuthNotice" class="hidden bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 dark:text-emerald-400 text-sm rounded-xl p-3 mb-4 text-center"></p>
 
       <!-- Login form -->
       <form id="loginForm" onsubmit="return handlePortalLogin(event)" class="space-y-4">
-        <input required type="email" id="loginEmail" placeholder="Email" class="w-full px-4 py-3 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
-        <input required type="password" id="loginPassword" placeholder="Password" class="w-full px-4 py-3 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+        <input required type="email" id="loginEmail" placeholder="Email" autocomplete="username" class="w-full px-4 py-3 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+        <input required type="password" id="loginPassword" placeholder="Password" autocomplete="current-password" class="w-full px-4 py-3 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+        <div class="flex items-center justify-between text-sm">
+          <label class="flex items-center gap-2 opacity-80 cursor-pointer">
+            <input type="checkbox" id="loginRemember" checked class="rounded border-gold-500/40">
+            Remember Me
+          </label>
+          <button type="button" onclick="setAuthMode('forgot')" class="text-gold-600 dark:text-gold-400 font-semibold underline underline-offset-4">Forgot Password?</button>
+        </div>
         <button class="btn-gold w-full py-3 rounded-lg font-semibold">Login</button>
+        <button type="button" onclick="handleResendVerification()" class="w-full py-1 text-xs opacity-60 hover:opacity-100 underline underline-offset-4">Didn't get a verification email? Resend</button>
       </form>
 
       <!-- Signup form -->
@@ -721,13 +733,35 @@
         <input required type="text" id="signupName" placeholder="Full Name" class="w-full px-4 py-3 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
         <input required type="email" id="signupEmail" placeholder="Email" class="w-full px-4 py-3 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
         <input required type="password" id="signupPassword" placeholder="Password (min 6 characters)" minlength="6" class="w-full px-4 py-3 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
-        <select id="signupRole" class="w-full px-4 py-3 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+        <select id="signupRole" onchange="document.getElementById('signupParentChildBox').classList.toggle('hidden', this.value!=='parent')" class="w-full px-4 py-3 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
           <option value="student">I am a Student</option>
           <option value="teacher">I am a Teacher</option>
+          <option value="parent">I am a Parent</option>
         </select>
+        <div id="signupParentChildBox" class="hidden">
+          <input type="email" id="signupChildEmail" placeholder="Your Child's Registered Email" class="w-full px-4 py-3 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+          <p class="text-xs opacity-60 mt-1">We'll link your account to your child's student record using this email.</p>
+        </div>
         <button class="btn-gold w-full py-3 rounded-lg font-semibold">Create Account</button>
       </form>
-      <p class="text-xs opacity-60 text-center mt-4">Note: new Teacher accounts should be verified by the academy admin before being trusted with student records.</p>
+
+      <!-- Forgot password form -->
+      <form id="forgotForm" onsubmit="return handleForgotPassword(event)" class="space-y-4 hidden">
+        <p class="text-sm opacity-70 text-center">Enter your email — we'll send you a link to reset your password.</p>
+        <input required type="email" id="forgotEmail" placeholder="Email" class="w-full px-4 py-3 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+        <button class="btn-gold w-full py-3 rounded-lg font-semibold">Send Reset Link</button>
+        <button type="button" onclick="setAuthMode('login')" class="w-full py-2 text-sm text-gold-600 dark:text-gold-400 font-semibold underline underline-offset-4">Back to Login</button>
+      </form>
+
+      <!-- Reset password form (shown after clicking the emailed link) -->
+      <form id="resetForm" onsubmit="return handleResetPassword(event)" class="space-y-4 hidden">
+        <p class="text-sm opacity-70 text-center">Choose a new password for your account.</p>
+        <input required type="password" id="resetPassword" placeholder="New Password (min 6 characters)" minlength="6" class="w-full px-4 py-3 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+        <input required type="password" id="resetPasswordConfirm" placeholder="Confirm New Password" minlength="6" class="w-full px-4 py-3 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+        <button class="btn-gold w-full py-3 rounded-lg font-semibold">Update Password</button>
+      </form>
+
+      <p id="portalAuthFootnote" class="text-xs opacity-60 text-center mt-4">Note: new Teacher accounts should be verified by the academy admin before being trusted with student records.</p>
     </div>
 
     <!-- ---------- LOGGED-IN HEADER (shown when logged in) ---------- -->
@@ -768,12 +802,42 @@
       </div>
     </div>
 
+    <!-- ---------- PARENT DASHBOARD ---------- -->
+    <div id="portal-parent" class="hidden reveal space-y-6">
+      <div id="parentChildTabs" class="flex flex-wrap gap-2"></div>
+      <div id="parentChildContent" class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-6 border border-gold-500/20 card-hover">
+          <div class="w-10 h-10 rounded-xl bg-emerald-800 text-gold-400 flex items-center justify-center text-lg mb-3">📘</div>
+          <h4 class="font-semibold mb-1">Assignments</h4><p class="text-sm opacity-70" id="pAssignments">Loading…</p>
+        </div>
+        <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-6 border border-gold-500/20 card-hover">
+          <div class="w-10 h-10 rounded-xl bg-emerald-800 text-gold-400 flex items-center justify-center text-lg mb-3">📅</div>
+          <h4 class="font-semibold mb-1">Attendance</h4><p class="text-sm opacity-70" id="pAttendance">Loading…</p>
+          <div class="w-full h-1.5 rounded-full bg-fog-50 dark:bg-emerald-950 mt-3 overflow-hidden"><div id="pAttendanceBar" class="h-full bg-gold-500" style="width:0%"></div></div>
+        </div>
+        <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-6 border border-gold-500/20 card-hover">
+          <div class="w-10 h-10 rounded-xl bg-emerald-800 text-gold-400 flex items-center justify-center text-lg mb-3">💳</div>
+          <h4 class="font-semibold mb-1">Fees</h4><p class="text-sm opacity-70" id="pFees">Loading…</p>
+        </div>
+        <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-6 border border-gold-500/20 card-hover">
+          <div class="w-10 h-10 rounded-xl bg-emerald-800 text-gold-400 flex items-center justify-center text-lg mb-3">📈</div>
+          <h4 class="font-semibold mb-1">Progress</h4><p class="text-sm opacity-70" id="pProgress">Loading…</p>
+        </div>
+        <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-6 border border-gold-500/20 card-hover">
+          <div class="w-10 h-10 rounded-xl bg-emerald-800 text-gold-400 flex items-center justify-center text-lg mb-3">🎓</div>
+          <h4 class="font-semibold mb-1">Certificates</h4><p class="text-sm opacity-70" id="pCertificates">Loading…</p>
+        </div>
+      </div>
+      <p id="parentNoChildren" class="hidden text-sm opacity-70 text-center bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-6 border border-gold-500/20">No linked children found yet. Please contact the academy to link your account.</p>
+    </div>
+
     <!-- ---------- TEACHER DASHBOARD ---------- -->
     <div id="portal-teacher" class="hidden reveal">
+      <div id="teacherAssignedInfo" class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-5 border border-gold-500/20 mb-6 text-sm grid sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
       <div class="grid md:grid-cols-[280px_1fr] gap-6">
         <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-4 border border-gold-500/20">
           <h4 class="font-semibold mb-3">👥 Students</h4>
-          <div id="teacherStudentList" class="space-y-1 max-h-96 overflow-y-auto text-sm">Loading…</div>
+          <div id="teacherStudentList" class="space-y-1 text-sm">Loading…</div>
         </div>
         <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-6 border border-gold-500/20">
           <div id="teacherNoSelection" class="text-sm opacity-60">Select a student from the list to view and edit their record.</div>
@@ -835,23 +899,84 @@
         <div class="min-w-0">
 
           <!-- Dashboard tab -->
-          <div id="admintab-dashboard" class="admin-panel grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-5 border border-gold-500/20">
-              <p class="text-xs opacity-60 mb-1">Total Students</p>
-              <p class="text-3xl font-bold" id="admStatStudents">—</p>
+          <div id="admintab-dashboard" class="admin-panel space-y-6">
+
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-5 border border-gold-500/20">
+                <p class="text-xs opacity-60 mb-1">Total Students</p>
+                <p class="text-3xl font-bold" id="admStatStudents">—</p>
+              </div>
+              <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-5 border border-gold-500/20">
+                <p class="text-xs opacity-60 mb-1">Total Ustaad</p>
+                <p class="text-3xl font-bold" id="admStatTeachers">—</p>
+              </div>
+              <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-5 border border-gold-500/20">
+                <p class="text-xs opacity-60 mb-1">Total Parents</p>
+                <p class="text-3xl font-bold" id="admStatParents">—</p>
+              </div>
+              <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-5 border border-gold-500/20">
+                <p class="text-xs opacity-60 mb-1">Pending Approvals</p>
+                <p class="text-3xl font-bold" id="admStatPending">—</p>
+              </div>
             </div>
-            <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-5 border border-gold-500/20">
-              <p class="text-xs opacity-60 mb-1">Total Ustaad</p>
-              <p class="text-3xl font-bold" id="admStatTeachers">—</p>
+
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-5 border border-gold-500/20">
+                <p class="text-xs opacity-60 mb-1">Active Students</p>
+                <p class="text-3xl font-bold text-emerald-600 dark:text-emerald-400" id="admStatActive">—</p>
+              </div>
+              <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-5 border border-gold-500/20">
+                <p class="text-xs opacity-60 mb-1">Inactive Students</p>
+                <p class="text-3xl font-bold opacity-70" id="admStatInactive">—</p>
+              </div>
+              <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-5 border border-gold-500/20">
+                <p class="text-xs opacity-60 mb-1">Today's Attendance</p>
+                <p class="text-3xl font-bold" id="admStatAttendanceToday">—</p>
+                <p class="text-xs opacity-60 mt-1" id="admStatAttendanceTodayNote">&nbsp;</p>
+              </div>
+              <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-5 border border-gold-500/20">
+                <p class="text-xs opacity-60 mb-1">Pending Homework</p>
+                <p class="text-3xl font-bold" id="admStatPendingHomework">—</p>
+              </div>
             </div>
-            <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-5 border border-gold-500/20">
-              <p class="text-xs opacity-60 mb-1">Active Students</p>
-              <p class="text-3xl font-bold" id="admStatActive">—</p>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-5 border border-gold-500/20">
+                <p class="text-xs opacity-60 mb-1">Monthly Revenue</p>
+                <p class="text-3xl font-bold text-emerald-600 dark:text-emerald-400" id="admStatRevenue">—</p>
+              </div>
+              <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-5 border border-gold-500/20">
+                <p class="text-xs opacity-60 mb-1">Pending Fees</p>
+                <p class="text-3xl font-bold text-red-500" id="admStatPendingFees">—</p>
+              </div>
             </div>
-            <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-5 border border-gold-500/20">
-              <p class="text-xs opacity-60 mb-1">Pending Approvals</p>
-              <p class="text-3xl font-bold" id="admStatPending">—</p>
+
+            <div class="grid lg:grid-cols-2 gap-4">
+              <!-- 7-day attendance chart -->
+              <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-5 border border-gold-500/20">
+                <h4 class="font-semibold text-sm mb-3">Attendance — Last 7 Days</h4>
+                <div id="admAttendanceChart" class="flex items-end gap-2 h-36"></div>
+              </div>
+              <!-- Latest admissions -->
+              <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-5 border border-gold-500/20">
+                <h4 class="font-semibold text-sm mb-3">Latest Admissions</h4>
+                <div id="admLatestAdmissions" class="space-y-2 text-sm max-h-36 overflow-y-auto">Loading…</div>
+              </div>
             </div>
+
+            <div class="grid lg:grid-cols-2 gap-4">
+              <!-- Notifications -->
+              <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-5 border border-gold-500/20">
+                <h4 class="font-semibold text-sm mb-3">🔔 Notifications</h4>
+                <div id="admNotificationsList" class="space-y-2 text-sm max-h-56 overflow-y-auto">Loading…</div>
+              </div>
+              <!-- Recent activity -->
+              <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-5 border border-gold-500/20">
+                <h4 class="font-semibold text-sm mb-3">🕒 Recent Activity</h4>
+                <div id="admRecentActivity" class="space-y-2 text-sm max-h-56 overflow-y-auto">Loading…</div>
+              </div>
+            </div>
+
           </div>
 
           <!-- Students tab -->
@@ -861,18 +986,36 @@
                 <h3 class="font-display text-xl font-semibold">Students</h3>
                 <p class="text-xs opacity-60">Manage all talib-e-ilm records.</p>
               </div>
-              <button onclick="openStudentModal()" class="btn-gold px-5 py-2.5 rounded-lg font-semibold text-sm">+ Add Student</button>
+              <div class="flex flex-wrap gap-2">
+                <button onclick="exportStudentsPDF()" class="px-4 py-2.5 rounded-lg font-semibold text-sm border border-gold-500/40 hover:bg-gold-500/10">📄 Export PDF</button>
+                <button onclick="exportStudentsExcel()" class="px-4 py-2.5 rounded-lg font-semibold text-sm border border-gold-500/40 hover:bg-gold-500/10">📊 Export Excel</button>
+                <button onclick="openStudentModal()" class="btn-gold px-5 py-2.5 rounded-lg font-semibold text-sm">+ Add Student</button>
+              </div>
             </div>
-            <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl border border-gold-500/20 overflow-x-auto">
-              <table class="w-full text-sm min-w-[640px]">
+
+            <div class="flex flex-wrap gap-3 mb-4">
+              <input id="admStudentSearch" oninput="renderAdminStudentsTable()" type="search" placeholder="🔍 Search by name, father, or phone…" class="flex-1 min-w-[200px] px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500">
+              <select id="admStudentFilterClass" onchange="renderAdminStudentsTable()" class="px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500">
+                <option value="">All Classes</option>
+              </select>
+              <select id="admStudentFilterStatus" onchange="renderAdminStudentsTable()" class="px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500">
+                <option value="">All Statuses</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+
+            <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl border border-gold-500/20 overflow-hidden">
+              <table class="w-full text-xs sm:text-sm table-fixed">
                 <thead>
-                  <tr class="text-left border-b border-gold-500/20 opacity-70 text-xs uppercase">
-                    <th class="py-3 px-4">Name</th>
-                    <th class="py-3 px-4">Father</th>
-                    <th class="py-3 px-4">Class</th>
-                    <th class="py-3 px-4">Phone</th>
-                    <th class="py-3 px-4">Status</th>
-                    <th class="py-3 px-4 text-right">Actions</th>
+                  <tr class="text-left border-b border-gold-500/20 opacity-70 text-[10px] sm:text-xs uppercase">
+                    <th class="py-3 px-2 sm:px-3 w-[17%] whitespace-nowrap">Name</th>
+                    <th class="py-3 px-2 sm:px-3 w-[14%] whitespace-nowrap">Father</th>
+                    <th class="py-3 px-2 sm:px-3 w-[20%] whitespace-nowrap">Class</th>
+                    <th class="py-3 px-2 sm:px-3 w-[10%] whitespace-nowrap">Batch</th>
+                    <th class="py-3 px-2 sm:px-3 w-[15%] whitespace-nowrap">Phone</th>
+                    <th class="py-3 px-2 sm:px-3 w-[8%] whitespace-nowrap">Docs</th>
+                    <th class="py-3 px-2 sm:px-3 w-[16%] text-right whitespace-nowrap">Actions</th>
                   </tr>
                 </thead>
                 <tbody id="admStudentsTableBody"></tbody>
@@ -882,9 +1025,32 @@
 
           <!-- Teachers tab -->
           <div id="admintab-teachers" class="admin-panel hidden">
-            <h3 class="font-display text-xl font-semibold mb-1">Ustaad</h3>
-            <p class="text-xs opacity-60 mb-5">Approved teacher accounts.</p>
-            <div id="admTeachersList" class="grid sm:grid-cols-2 gap-4"></div>
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <h3 class="font-display text-xl font-semibold">👳 Teacher Management</h3>
+              <button onclick="openTeacherModal()" class="btn-gold px-4 py-2 rounded-lg text-sm font-semibold">+ Add Teacher</button>
+            </div>
+            <div class="flex flex-wrap gap-3 mb-4">
+              <input id="admTeacherSearch" oninput="renderAdminTeachersTable()" type="search" placeholder="🔍 Search by name or email…" class="flex-1 min-w-[200px] px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500">
+              <select id="admTeacherFilterStatus" onchange="renderAdminTeachersTable()" class="px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500">
+                <option value="">All Status</option>
+                <option value="active">Active</option>
+                <option value="suspended">Suspended</option>
+              </select>
+            </div>
+            <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl border border-gold-500/20 overflow-hidden">
+              <table class="w-full text-xs sm:text-sm table-fixed">
+                <thead>
+                  <tr class="text-left border-b border-gold-500/20 opacity-70 text-[10px] sm:text-xs uppercase">
+                    <th class="py-3 px-2 sm:px-3 w-[22%] break-words leading-tight">Name</th>
+                    <th class="py-3 px-2 sm:px-3 w-[30%] break-words leading-tight">Email</th>
+                    <th class="py-3 px-2 sm:px-3 w-[20%] break-words leading-tight">Courses</th>
+                    <th class="py-3 px-2 sm:px-3 w-[16%] whitespace-nowrap">Students</th>
+                    <th class="py-3 px-2 sm:px-3 w-[12%] text-right whitespace-nowrap">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="admTeachersTableBody"></tbody>
+              </table>
+            </div>
           </div>
 
           <!-- Classes tab: assign course + teacher to each student -->
@@ -1016,14 +1182,62 @@
           <input type="hidden" id="admStudentId">
           <input required id="admStudentName" placeholder="Student Name" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
           <input id="admStudentFather" placeholder="Father's Name" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
-          <input id="admStudentClass" placeholder="Class (e.g. Hifz, Nazra)" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
-          <input id="admStudentPhone" placeholder="Phone Number" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+          <div class="grid grid-cols-2 gap-3">
+            <select id="admStudentClass" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+              <option value="">— Select Class —</option>
+            </select>
+            <input id="admStudentBatch" placeholder="Batch (e.g. Morning)" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+          </div>
+          <div class="grid grid-cols-2 gap-3">
+            <input id="admStudentSection" placeholder="Section (e.g. A)" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+            <input id="admStudentPhone" placeholder="Phone Number" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+          </div>
           <select id="admStudentStatus" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
             <option value="active">Active</option>
             <option value="inactive">Inactive</option>
           </select>
+          <div>
+            <label class="text-xs opacity-60 block mb-1">Upload Document (ID card, form, certificate…)</label>
+            <input id="admStudentDocFile" type="file" class="w-full text-sm px-3 py-2 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30">
+            <p id="admStudentDocUploadStatus" class="text-xs opacity-60 mt-1">&nbsp;</p>
+            <div id="admStudentDocList" class="flex flex-wrap gap-2 mt-2"></div>
+          </div>
           <div class="flex gap-3 pt-2">
             <button type="button" onclick="closeStudentModal()" class="flex-1 py-2.5 rounded-lg font-semibold text-sm border border-gold-500/40">Cancel</button>
+            <button class="flex-1 btn-gold py-2.5 rounded-lg font-semibold text-sm">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Add/Edit Teacher modal -->
+    <div id="teacherModal" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-5 bg-black/50 overflow-y-auto">
+      <div class="bg-fog-50 dark:bg-emerald-950 rounded-2xl p-6 w-full max-w-lg border border-gold-500/20 my-8">
+        <h4 class="font-display text-lg font-semibold mb-4" id="teacherModalTitle">Add Teacher</h4>
+        <form id="teacherForm" onsubmit="return saveAdminTeacher(event)" class="space-y-3">
+          <input type="hidden" id="admTeacherId">
+          <input required id="admTeacherName" placeholder="Teacher Full Name" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+          <input required id="admTeacherEmail" type="email" placeholder="Email" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+          <div id="admTeacherPasswordWrap">
+            <input id="admTeacherPassword" type="password" placeholder="Password (min 6 characters)" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+            <p class="text-xs opacity-60 mt-1">Only required when creating a new teacher account.</p>
+          </div>
+          <input id="admTeacherPhone" placeholder="Phone Number" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+          <div>
+            <label class="text-xs font-semibold opacity-70 block mb-1">Assign Courses</label>
+            <div id="admTeacherCoursesBox" class="max-h-44 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1.5 p-3 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 text-sm"></div>
+          </div>
+          <div>
+            <label class="text-xs font-semibold opacity-70 block mb-1">Timetable (free text, e.g. "Mon-Fri 5-6pm")</label>
+            <textarea id="admTeacherTimetable" rows="2" placeholder="e.g. Mon/Wed/Fri 5:00-6:00 PM, Sat 10:00-11:00 AM" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500"></textarea>
+          </div>
+          <select id="admTeacherStatus" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+            <option value="active">Active</option>
+            <option value="suspended">Suspended</option>
+          </select>
+          <p id="admTeacherFormMsg" class="hidden text-sm"></p>
+          <div class="flex gap-3 pt-2">
+            <button type="button" onclick="closeTeacherModal()" class="flex-1 py-2.5 rounded-lg font-semibold text-sm border border-gold-500/40">Cancel</button>
             <button class="flex-1 btn-gold py-2.5 rounded-lg font-semibold text-sm">Save</button>
           </div>
         </form>
@@ -1646,16 +1860,33 @@ function toggleMobileMenu(){
 /* ================= PORTAL (Supabase Auth + Database) ================= */
 
 function setAuthMode(mode){
+  // mode: 'login' | 'signup' | 'forgot' | 'reset'
   document.getElementById('loginForm').classList.toggle('hidden', mode!=='login');
   document.getElementById('signupForm').classList.toggle('hidden', mode!=='signup');
+  document.getElementById('forgotForm').classList.toggle('hidden', mode!=='forgot');
+  document.getElementById('resetForm').classList.toggle('hidden', mode!=='reset');
+
+  // Tabs (Login/Create Account) only make sense for login+signup modes
+  document.getElementById('authModeTabs').classList.toggle('hidden', mode==='reset');
   document.getElementById('authModeLoginBtn').className = 'portal-tab px-6 py-2.5 rounded-full font-semibold text-sm ' + (mode==='login' ? 'btn-gold' : 'border border-gold-500/40');
   document.getElementById('authModeSignupBtn').className = 'portal-tab px-6 py-2.5 rounded-full font-semibold text-sm ' + (mode==='signup' ? 'btn-gold' : 'border border-gold-500/40');
+
+  document.getElementById('portalAuthFootnote').classList.toggle('hidden', mode!=='signup');
   document.getElementById('portalAuthError').classList.add('hidden');
+  document.getElementById('portalAuthNotice').classList.add('hidden');
 }
 
 function showPortalAuthError(err){
+  document.getElementById('portalAuthNotice').classList.add('hidden');
   const box = document.getElementById('portalAuthError');
   box.textContent = (err && err.message) || 'Something went wrong. Please try again.';
+  box.classList.remove('hidden');
+}
+
+function showPortalAuthNotice(msg){
+  document.getElementById('portalAuthError').classList.add('hidden');
+  const box = document.getElementById('portalAuthNotice');
+  box.textContent = msg;
   box.classList.remove('hidden');
 }
 
@@ -1663,8 +1894,14 @@ async function handlePortalLogin(e){
   e.preventDefault();
   const email = document.getElementById('loginEmail').value.trim();
   const password = document.getElementById('loginPassword').value;
+  const remember = document.getElementById('loginRemember').checked;
   const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-  if(error) showPortalAuthError(error);
+  if(error){ showPortalAuthError(error); return false; }
+  // Remember Me: if unchecked, mark this as a session-only login so we sign out when the tab/browser closes.
+  try{
+    if(remember){ sessionStorage.removeItem('suha_session_only'); }
+    else { sessionStorage.setItem('suha_session_only','1'); }
+  }catch(_){}
   return false;
 }
 
@@ -1674,33 +1911,80 @@ async function handlePortalSignup(e){
   const email = document.getElementById('signupEmail').value.trim();
   const password = document.getElementById('signupPassword').value;
   const role = document.getElementById('signupRole').value;
+  const childEmail = (document.getElementById('signupChildEmail').value || '').trim();
 
-  const { data, error } = await supabaseClient.auth.signUp({ email, password });
-  if(error){ showPortalAuthError(error); return false; }
-
-  const uid = data.user && data.user.id;
-  if(!uid){
-    showPortalAuthError({message:'Signup succeeded but no session was returned — check your inbox to confirm your email, then log in.'});
+  if(role === 'parent' && !childEmail){
+    showPortalAuthError({message:"Please enter your child's registered email so we can link your account."});
     return false;
   }
 
-  const { error: profileErr } = await supabaseClient.from('users').insert({ id: uid, name, email, role });
-  if(profileErr){ showPortalAuthError(profileErr); return false; }
+  const { data, error } = await supabaseClient.auth.signUp({
+    email, password,
+    options: { data: { name, role } }   // read by the DB trigger to set users.role/name correctly
+  });
+  if(error){ showPortalAuthError(error); return false; }
 
-  if(role === 'student'){
-    const { error: studentErr } = await supabaseClient.from('students').insert({
-      id: uid, name, assignments: 'No assignments yet',
-      attendance: { percent: 0, note: 'No classes recorded yet' },
-      fees: 'Not set yet — contact the academy', progress: 'Not started yet',
-      certificates: 'None yet', recordings: 'None yet'
-    });
-    if(studentErr) showPortalAuthError(studentErr);
+  const uid = data.user && data.user.id;
+  if(!uid || !data.session){
+    showPortalAuthNotice('Account created! Please check your inbox to confirm your email, then log in.');
+    e.target.reset();
+    setAuthMode('login');
+    return false;
   }
+
+  // Note: the `users` row (and, for students, the matching `students` row) is
+  // created automatically by a database trigger — self-signup is not allowed
+  // to write those tables directly, by design (RLS).
+
+  if(role === 'parent'){
+    const { data: linkResult, error: linkErr } = await supabaseClient.rpc('link_parent_to_child', { child_email: childEmail });
+    if(linkErr){
+      showPortalAuthNotice('Account created, but linking to your child failed: ' + linkErr.message + '. Please contact the academy.');
+    } else if(linkResult !== 'linked'){
+      showPortalAuthNotice('Account created, but we could not find a student with that email yet. Please ask the academy to link your account to your child.');
+    }
+  }
+  return false;
+}
+
+async function handleForgotPassword(e){
+  e.preventDefault();
+  const email = document.getElementById('forgotEmail').value.trim();
+  const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+    redirectTo: window.location.origin + window.location.pathname + '#page-portal'
+  });
+  if(error){ showPortalAuthError(error); return false; }
+  showPortalAuthNotice('Reset link sent! Please check your inbox (and spam folder) for an email from us.');
+  e.target.reset();
+  return false;
+}
+
+async function handleResendVerification(){
+  const email = (document.getElementById('loginEmail').value || '').trim();
+  if(!email){ showPortalAuthError({message:'Enter your email above first, then tap resend.'}); return; }
+  const { error } = await supabaseClient.auth.resend({ type: 'signup', email });
+  if(error){ showPortalAuthError(error); return; }
+  showPortalAuthNotice('Verification email resent! Please check your inbox (and spam folder).');
+}
+
+async function handleResetPassword(e){
+  e.preventDefault();
+  const pw = document.getElementById('resetPassword').value;
+  const pwConfirm = document.getElementById('resetPasswordConfirm').value;
+  if(pw !== pwConfirm){
+    showPortalAuthError({message:'Passwords do not match.'});
+    return false;
+  }
+  const { error } = await supabaseClient.auth.updateUser({ password: pw });
+  if(error){ showPortalAuthError(error); return false; }
+  showPortalAuthNotice('Password updated! You can now use it to log in.');
+  setAuthMode('login');
   return false;
 }
 
 async function handlePortalLogout(){
   await supabaseClient.auth.signOut();
+  try{ sessionStorage.removeItem('suha_session_only'); }catch(_){}
 }
 
 async function renderPortalForUser(user){
@@ -1708,12 +1992,14 @@ async function renderPortalForUser(user){
   const loggedInBar = document.getElementById('portalLoggedInBar');
   const studentView = document.getElementById('portal-student');
   const teacherView = document.getElementById('portal-teacher');
+  const parentView = document.getElementById('portal-parent');
 
   if(!user){
     authBox.classList.remove('hidden');
     loggedInBar.classList.add('hidden');
     studentView.classList.add('hidden');
     teacherView.classList.add('hidden');
+    parentView.classList.add('hidden');
     return;
   }
 
@@ -1731,28 +2017,29 @@ async function renderPortalForUser(user){
   }
 
   document.getElementById('portalWelcomeName').textContent = profile.name || user.email;
-  document.getElementById('portalWelcomeRole').textContent = profile.role === 'admin' ? 'Admin' : (profile.role === 'teacher' ? 'Teacher' : 'Student');
+  document.getElementById('portalWelcomeRole').textContent =
+    profile.role === 'admin' ? 'Admin' : (profile.role === 'teacher' ? 'Teacher' : (profile.role === 'parent' ? 'Parent' : 'Student'));
   document.getElementById('portalAvatar').textContent = (profile.name || user.email || '?').charAt(0).toUpperCase();
 
   const adminView = document.getElementById('portal-admin');
+  [studentView, teacherView, parentView, adminView].forEach(v=>v.classList.add('hidden'));
 
   if(profile.role === 'admin'){
-    studentView.classList.add('hidden');
-    teacherView.classList.add('hidden');
     adminView.classList.remove('hidden');
     adminView.classList.add('in');
     adminView.querySelectorAll('.reveal').forEach(el=>el.classList.add('in'));
     switchAdminTab('dashboard');
   } else if(profile.role === 'teacher'){
-    studentView.classList.add('hidden');
-    adminView.classList.add('hidden');
     teacherView.classList.remove('hidden');
     teacherView.classList.add('in');
     teacherView.querySelectorAll('.reveal').forEach(el=>el.classList.add('in'));
     loadTeacherStudentList();
+  } else if(profile.role === 'parent'){
+    parentView.classList.remove('hidden');
+    parentView.classList.add('in');
+    parentView.querySelectorAll('.reveal').forEach(el=>el.classList.add('in'));
+    loadParentDashboard(user.id);
   } else {
-    teacherView.classList.add('hidden');
-    adminView.classList.add('hidden');
     studentView.classList.remove('hidden');
     studentView.classList.add('in');
     studentView.querySelectorAll('.reveal').forEach(el=>el.classList.add('in'));
@@ -1760,26 +2047,121 @@ async function renderPortalForUser(user){
   }
 }
 
+async function loadParentDashboard(parentId){
+  const tabsBox = document.getElementById('parentChildTabs');
+  const contentBox = document.getElementById('parentChildContent');
+  const noChildren = document.getElementById('parentNoChildren');
+  tabsBox.innerHTML = '';
+
+  const { data: links, error: linkErr } = await supabaseClient
+    .from('parent_student')
+    .select('student_id, students(id, name)')
+    .eq('parent_id', parentId);
+
+  if(linkErr || !links || links.length === 0){
+    contentBox.classList.add('hidden');
+    noChildren.classList.remove('hidden');
+    return;
+  }
+
+  contentBox.classList.remove('hidden');
+  noChildren.classList.add('hidden');
+
+  links.forEach((link, i) => {
+    const childName = (link.students && link.students.name) || 'Child ' + (i+1);
+    const btn = document.createElement('button');
+    btn.textContent = childName;
+    btn.className = 'portal-tab px-4 py-2 rounded-full font-semibold text-sm ' + (i===0 ? 'btn-gold' : 'border border-gold-500/40');
+    btn.onclick = () => {
+      tabsBox.querySelectorAll('button').forEach(b=>b.className = 'portal-tab px-4 py-2 rounded-full font-semibold text-sm border border-gold-500/40');
+      btn.className = 'portal-tab px-4 py-2 rounded-full font-semibold text-sm btn-gold';
+      loadParentChildDetails(link.student_id);
+    };
+    tabsBox.appendChild(btn);
+  });
+
+  loadParentChildDetails(links[0].student_id);
+}
+
+async function loadParentChildDetails(studentId){
+  const setAll = (msg) => ['pAssignments','pAttendance','pFees','pProgress','pCertificates'].forEach(id=>document.getElementById(id).textContent=msg);
+  setAll('Loading…');
+
+  const [{ data: hw }, { data: att }, { data: invoices }, { data: certs }] = await Promise.all([
+    supabaseClient.from('homework_submissions').select('status').eq('student_id', studentId),
+    supabaseClient.from('attendance').select('status').eq('student_id', studentId),
+    supabaseClient.from('fee_invoices').select('status, amount').eq('student_id', studentId),
+    supabaseClient.from('certificates').select('id').eq('student_id', studentId)
+  ]);
+
+  const pendingHw = (hw || []).filter(h => h.status === 'pending').length;
+  document.getElementById('pAssignments').textContent = pendingHw ? `${pendingHw} pending` : 'All caught up';
+
+  const totalAtt = (att || []).length;
+  const presentAtt = (att || []).filter(a => a.status === 'present' || a.status === 'late').length;
+  const pct = totalAtt ? Math.round((presentAtt / totalAtt) * 100) : 0;
+  document.getElementById('pAttendance').textContent = totalAtt ? `${pct}% present (${presentAtt}/${totalAtt})` : 'No classes recorded yet';
+  document.getElementById('pAttendanceBar').style.width = pct + '%';
+
+  const pendingFee = (invoices || []).filter(i => i.status !== 'paid').reduce((s,i)=>s+Number(i.amount||0),0);
+  document.getElementById('pFees').textContent = pendingFee > 0 ? `Rs. ${pendingFee.toLocaleString()} pending` : 'No pending fees';
+
+  document.getElementById('pProgress').textContent = totalAtt ? `${pct}% attendance · ${pendingHw} homework pending` : 'Not started yet';
+  document.getElementById('pCertificates').textContent = (certs && certs.length) ? `${certs.length} earned` : 'None yet';
+}
+
 supabaseClient.auth.onAuthStateChange((event, session) => {
+  if(event === 'PASSWORD_RECOVERY'){
+    showPage('page-portal');
+    setAuthMode('reset');
+    return;
+  }
   renderPortalForUser(session ? session.user : null);
 });
 supabaseClient.auth.getSession().then(({ data }) => {
   renderPortalForUser(data.session ? data.session.user : null);
 });
 
+// If the person unchecked "Remember Me" earlier this browser session, sign them out
+// automatically when they close the tab/browser (best-effort — relies on sessionStorage,
+// which itself clears on tab close, so this flag only survives within the same tab session).
+window.addEventListener('beforeunload', () => {
+  try{
+    if(sessionStorage.getItem('suha_session_only') === '1'){
+      supabaseClient.auth.signOut();
+    }
+  }catch(_){}
+});
+
 async function loadStudentDashboard(uid){
   const setAll = (msg) => ['sAssignments','sAttendance','sFees','sProgress','sCertificates','sRecordings'].forEach(id=>document.getElementById(id).textContent=msg);
+  setAll('Loading…');
   try{
-    const { data: d, error } = await supabaseClient.from('students').select('*').eq('id', uid).single();
-    if(error || !d){ setAll('No record found yet — contact the academy.'); return; }
-    document.getElementById('sAssignments').textContent = d.assignments || '—';
-    const pct = (d.attendance && d.attendance.percent!=null) ? d.attendance.percent : null;
-    document.getElementById('sAttendance').textContent = (pct!=null) ? `${pct}% · ${d.attendance.note||''}` : '—';
-    document.getElementById('sAttendanceBar').style.width = (pct!=null ? pct : 0) + '%';
-    document.getElementById('sFees').textContent = d.fees || '—';
-    document.getElementById('sProgress').textContent = d.progress || '—';
-    document.getElementById('sCertificates').textContent = d.certificates || '—';
-    document.getElementById('sRecordings').textContent = d.recordings || '—';
+    const { data: studentId, error: idErr } = await supabaseClient.rpc('my_student_id');
+    if(idErr || !studentId){ setAll('No record found yet — contact the academy.'); return; }
+
+    const [{ data: hw }, { data: att }, { data: invoices }, { data: certs }] = await Promise.all([
+      supabaseClient.from('homework_submissions').select('status').eq('student_id', studentId),
+      supabaseClient.from('attendance').select('status').eq('student_id', studentId),
+      supabaseClient.from('fee_invoices').select('status, amount').eq('student_id', studentId),
+      supabaseClient.from('certificates').select('id').eq('student_id', studentId)
+    ]);
+
+    const pendingHw = (hw || []).filter(h => h.status === 'pending').length;
+    document.getElementById('sAssignments').textContent = pendingHw ? `${pendingHw} pending` : 'All caught up';
+
+    const totalAtt = (att || []).length;
+    const presentAtt = (att || []).filter(a => a.status === 'present' || a.status === 'late').length;
+    const pct = totalAtt ? Math.round((presentAtt / totalAtt) * 100) : 0;
+    document.getElementById('sAttendance').textContent = totalAtt ? `${pct}% present (${presentAtt}/${totalAtt})` : 'No classes recorded yet';
+    document.getElementById('sAttendanceBar').style.width = pct + '%';
+
+    const pendingFee = (invoices || []).filter(i => i.status !== 'paid').reduce((s,i)=>s+Number(i.amount||0),0);
+    document.getElementById('sFees').textContent = pendingFee > 0 ? `Rs. ${pendingFee.toLocaleString()} pending` : 'No pending fees';
+
+    document.getElementById('sProgress').textContent = totalAtt ? `${pct}% attendance · ${pendingHw} homework pending` : 'Not started yet';
+    document.getElementById('sCertificates').textContent = (certs && certs.length) ? `${certs.length} earned` : 'None yet';
+    document.getElementById('sRecordings').textContent = 'Check Live Classes tab';
   }catch(err){ setAll('Could not load data.'); }
 }
 
@@ -1787,10 +2169,28 @@ let selectedStudentId = null;
 
 async function loadTeacherStudentList(){
   const listEl = document.getElementById('teacherStudentList');
+  const infoEl = document.getElementById('teacherAssignedInfo');
   try{
-    const { data: rows, error } = await supabaseClient.from('students').select('*');
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    if(!user){ listEl.innerHTML = '<p class="text-red-500">Not signed in.</p>'; return; }
+
+    // Load this teacher's own profile to show assigned courses/classes/subjects/timetable
+    const { data: profile } = await supabaseClient.from('users').select('*').eq('id', user.id).single();
+    if(profile && infoEl){
+      if((profile.status||'active') === 'suspended'){
+        infoEl.innerHTML = '<p class="text-red-500 font-semibold sm:col-span-2 lg:col-span-4">⚠️ Your account has been suspended by the admin. Please contact the academy.</p>';
+      } else {
+        infoEl.innerHTML = `
+          <div><p class="text-xs font-semibold opacity-60 mb-1">📚 Assigned Courses</p><p>${(profile.courses||[]).join(', ') || '—'}</p></div>
+          <div><p class="text-xs font-semibold opacity-60 mb-1">🗓️ Timetable</p><p>${profile.timetable || '—'}</p></div>`;
+      }
+    }
+
+    // Only this teacher's own assigned students (RLS should already enforce this server-side;
+    // filtering client-side too keeps the UI correct even if RLS is briefly permissive).
+    const { data: rows, error } = await supabaseClient.from('students').select('*').eq('teacher_id', user.id);
     if(error){ listEl.innerHTML = '<p class="text-red-500">Could not load students.</p>'; return; }
-    if(!rows || rows.length===0){ listEl.innerHTML = '<p class="opacity-60">No students yet.</p>'; return; }
+    if(!rows || rows.length===0){ listEl.innerHTML = '<p class="opacity-60">No students assigned to you yet.</p>'; return; }
     listEl.innerHTML = rows.map(d => {
       return `<button onclick="selectStudent('${d.id}')" class="w-full text-left px-3 py-2 rounded-lg hover:bg-gold-500/10 transition">${d.name || '(no name)'}</button>`;
     }).join('');
@@ -1862,59 +2262,320 @@ function switchAdminTab(tab){
   if(tab === 'settings') loadAcademySettings();
 }
 
+function fmtPKR(n){
+  return 'Rs ' + Math.round(n||0).toLocaleString('en-PK');
+}
+function timeAgo(dateStr){
+  if(!dateStr) return '';
+  const diffMs = Date.now() - new Date(dateStr).getTime();
+  const mins = Math.floor(diffMs/60000);
+  if(mins < 1) return 'just now';
+  if(mins < 60) return mins + 'm ago';
+  const hrs = Math.floor(mins/60);
+  if(hrs < 24) return hrs + 'h ago';
+  const days = Math.floor(hrs/24);
+  return days + 'd ago';
+}
+
 async function loadAdminDashboard(){
   const { data: students } = await supabaseClient.from('students').select('*');
   const { data: users } = await supabaseClient.from('users').select('*');
   const rows = students || [];
   const allUsers = users || [];
+
   document.getElementById('admStatStudents').textContent = rows.length;
   document.getElementById('admStatActive').textContent = rows.filter(s => (s.status||'active') === 'active').length;
+  document.getElementById('admStatInactive').textContent = rows.filter(s => (s.status||'active') !== 'active').length;
   document.getElementById('admStatTeachers').textContent = allUsers.filter(u => u.role === 'teacher' && u.approved !== false).length;
+  document.getElementById('admStatParents').textContent = allUsers.filter(u => u.role === 'parent').length;
   document.getElementById('admStatPending').textContent = allUsers.filter(u => u.role === 'teacher' && u.approved === false).length;
+
+  // Today's attendance
+  try{
+    const today = new Date().toISOString().slice(0,10);
+    const { data: todayAtt } = await supabaseClient.from('attendance').select('*').eq('date', today);
+    const list = todayAtt || [];
+    const present = list.filter(a => a.status === 'present').length;
+    const pct = rows.length ? Math.round((present / rows.length) * 100) : 0;
+    document.getElementById('admStatAttendanceToday').textContent = list.length ? (pct + '%') : '—';
+    document.getElementById('admStatAttendanceTodayNote').textContent = list.length ? (present + ' of ' + rows.length + ' present') : 'Not marked yet today';
+  }catch(_){
+    document.getElementById('admStatAttendanceToday').textContent = '—';
+  }
+
+  // Pending homework (submissions not yet reviewed) — module data will be empty until Homework feature is built
+  try{
+    const { data: subs, error } = await supabaseClient.from('homework_submissions').select('status');
+    if(error) throw error;
+    document.getElementById('admStatPendingHomework').textContent = (subs||[]).filter(s => s.status !== 'reviewed').length;
+  }catch(_){
+    document.getElementById('admStatPendingHomework').textContent = '0';
+  }
+
+  // Monthly revenue + pending fees — module data will be empty until Fee System feature is built
+  try{
+    const { data: payments, error } = await supabaseClient.from('fee_payments').select('*');
+    if(error) throw error;
+    const now = new Date();
+    const monthTotal = (payments||[]).filter(p => {
+      const d = new Date(p.paid_at || p.created_at);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    }).reduce((sum,p) => sum + (Number(p.amount)||0), 0);
+    document.getElementById('admStatRevenue').textContent = fmtPKR(monthTotal);
+  }catch(_){
+    document.getElementById('admStatRevenue').textContent = fmtPKR(0);
+  }
+  try{
+    const { data: invoices, error } = await supabaseClient.from('fee_invoices').select('*');
+    if(error) throw error;
+    const pendingTotal = (invoices||[]).filter(i => i.status !== 'paid').reduce((sum,i) => sum + (Number(i.amount)||0), 0);
+    document.getElementById('admStatPendingFees').textContent = fmtPKR(pendingTotal);
+  }catch(_){
+    document.getElementById('admStatPendingFees').textContent = fmtPKR(0);
+  }
+
+  renderAdminAttendanceChart();
+  renderAdminLatestAdmissions(rows);
+  renderAdminNotifications();
+  renderAdminRecentActivity(rows);
 }
+
+async function renderAdminAttendanceChart(){
+  const box = document.getElementById('admAttendanceChart');
+  try{
+    const days = [...Array(7)].map((_,i) => {
+      const d = new Date(); d.setDate(d.getDate() - (6-i));
+      return d.toISOString().slice(0,10);
+    });
+    const since = days[0];
+    const { data: att, error } = await supabaseClient.from('attendance').select('date,status').gte('date', since);
+    if(error) throw error;
+    const { data: students } = await supabaseClient.from('students').select('id');
+    const totalStudents = (students||[]).length || 1;
+
+    box.innerHTML = days.map(day => {
+      const dayRows = (att||[]).filter(a => a.date === day);
+      const present = dayRows.filter(a => a.status === 'present').length;
+      const pct = dayRows.length ? Math.round((present/totalStudents)*100) : 0;
+      const label = new Date(day).toLocaleDateString('en-US',{weekday:'short'});
+      return `<div class="flex-1 flex flex-col items-center gap-1.5 h-full justify-end">
+        <div class="w-full rounded-t-md bg-gold-500" style="height:${Math.max(pct,2)}%" title="${pct}% present"></div>
+        <span class="text-[10px] opacity-60">${label}</span>
+      </div>`;
+    }).join('');
+  }catch(_){
+    box.innerHTML = '<p class="text-xs opacity-60 self-center mx-auto">No attendance data yet.</p>';
+  }
+}
+
+function renderAdminLatestAdmissions(students){
+  const box = document.getElementById('admLatestAdmissions');
+  const sorted = [...students].sort((a,b) => new Date(b.created_at||0) - new Date(a.created_at||0)).slice(0,6);
+  if(sorted.length === 0){ box.innerHTML = '<p class="opacity-60 text-xs">No admissions yet.</p>'; return; }
+  box.innerHTML = sorted.map(s => `
+    <div class="flex items-center justify-between border-b border-gold-500/10 last:border-0 pb-2 last:pb-0">
+      <span class="font-medium">${s.name || '—'}</span>
+      <span class="text-xs opacity-60">${s.created_at ? timeAgo(s.created_at) : '—'}</span>
+    </div>`).join('');
+}
+
+async function renderAdminNotifications(){
+  const box = document.getElementById('admNotificationsList');
+  try{
+    const { data, error } = await supabaseClient.from('notifications').select('*').order('created_at',{ascending:false}).limit(8);
+    if(error) throw error;
+    if(!data || data.length === 0){ box.innerHTML = '<p class="opacity-60 text-xs">No notifications yet.</p>'; return; }
+    box.innerHTML = data.map(n => `
+      <div class="border-b border-gold-500/10 last:border-0 pb-2 last:pb-0">
+        <p class="font-medium">${n.title || n.message || 'Notification'}</p>
+        <p class="text-xs opacity-60">${timeAgo(n.created_at)}</p>
+      </div>`).join('');
+  }catch(_){
+    box.innerHTML = '<p class="opacity-60 text-xs">No notifications yet.</p>';
+  }
+}
+
+function renderAdminRecentActivity(students){
+  const box = document.getElementById('admRecentActivity');
+  const events = [];
+  students.forEach(s => { if(s.created_at) events.push({ text: (s.name||'A student') + ' was admitted', date: s.created_at }); });
+  events.sort((a,b) => new Date(b.date) - new Date(a.date));
+  const top = events.slice(0,8);
+  if(top.length === 0){ box.innerHTML = '<p class="opacity-60 text-xs">No recent activity.</p>'; return; }
+  box.innerHTML = top.map(e => `
+    <div class="border-b border-gold-500/10 last:border-0 pb-2 last:pb-0">
+      <p>${e.text}</p>
+      <p class="text-xs opacity-60">${timeAgo(e.date)}</p>
+    </div>`).join('');
+}
+
+let adminStudentsCache = [];
 
 async function loadAdminStudents(){
   const tbody = document.getElementById('admStudentsTableBody');
-  tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center opacity-60 text-sm">Loading…</td></tr>';
+  tbody.innerHTML = '<tr><td colspan="8" class="py-6 text-center opacity-60 text-sm">Loading…</td></tr>';
   const { data: rows, error } = await supabaseClient.from('students').select('*').order('name');
-  if(error){ tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-red-500 text-sm">Could not load students.</td></tr>'; return; }
-  if(!rows || rows.length===0){ tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center opacity-60 text-sm">No students yet — click "Add Student" to create one.</td></tr>'; return; }
+  if(error){ tbody.innerHTML = '<tr><td colspan="8" class="py-6 text-center text-red-500 text-sm">Could not load students.</td></tr>'; return; }
+  adminStudentsCache = rows || [];
+
+  // populate class filter options
+  const classSel = document.getElementById('admStudentFilterClass');
+  const classes = [...new Set(adminStudentsCache.map(s => s.class).filter(Boolean))];
+  const prevVal = classSel.value;
+  classSel.innerHTML = '<option value="">All Classes</option>' + classes.map(c => `<option value="${c}">${c}</option>`).join('');
+  classSel.value = prevVal;
+
+  renderAdminStudentsTable();
+}
+
+function renderAdminStudentsTable(){
+  const tbody = document.getElementById('admStudentsTableBody');
+  const q = (document.getElementById('admStudentSearch').value || '').trim().toLowerCase();
+  const classFilter = document.getElementById('admStudentFilterClass').value;
+  const statusFilter = document.getElementById('admStudentFilterStatus').value;
+
+  let rows = adminStudentsCache;
+  if(q){
+    rows = rows.filter(s =>
+      (s.name||'').toLowerCase().includes(q) ||
+      (s.father_name||'').toLowerCase().includes(q) ||
+      (s.phone||'').toLowerCase().includes(q)
+    );
+  }
+  if(classFilter) rows = rows.filter(s => s.class === classFilter);
+  if(statusFilter) rows = rows.filter(s => (s.status||'active') === statusFilter);
+
+  if(rows.length===0){ tbody.innerHTML = '<tr><td colspan="7" class="py-6 text-center opacity-60 text-sm">No students match your search/filters.</td></tr>'; return; }
+
   tbody.innerHTML = rows.map(s => {
     const status = s.status || 'active';
-    const statusBadge = status === 'active'
-      ? '<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">Active</span>'
-      : '<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-fog-50 dark:bg-emerald-950 opacity-70">Inactive</span>';
+    const dotColor = status === 'active' ? 'bg-emerald-500' : 'bg-red-500';
+    const docCount = Array.isArray(s.documents) ? s.documents.length : 0;
     return `<tr class="border-b border-gold-500/10 last:border-0">
-      <td class="py-3 px-4 font-medium">${s.name || '—'}</td>
-      <td class="py-3 px-4 opacity-80">${s.father_name || '—'}</td>
-      <td class="py-3 px-4 opacity-80">${s.class || '—'}</td>
-      <td class="py-3 px-4 opacity-80 ltr-only">${s.phone || '—'}</td>
-      <td class="py-3 px-4">${statusBadge}</td>
-      <td class="py-3 px-4 text-right space-x-2 whitespace-nowrap">
-        <button onclick="openStudentModal('${s.id}')" title="Edit" class="hover:text-gold-500">✏️</button>
-        <button onclick="toggleAdminStudentStatus('${s.id}','${status}')" title="Toggle status" class="hover:text-gold-500">⏻</button>
-        <button onclick="deleteAdminStudent('${s.id}')" title="Delete" class="hover:text-red-500">🗑️</button>
+      <td class="py-2.5 px-2 sm:px-3 font-medium truncate">
+        <span class="inline-block w-2 h-2 rounded-full ${dotColor} mr-1.5" title="${status === 'active' ? 'Active' : 'Suspended'}"></span>${s.name || '—'}
+      </td>
+      <td class="py-2.5 px-2 sm:px-3 opacity-80 truncate">${s.father_name || '—'}</td>
+      <td class="py-2.5 px-2 sm:px-3 opacity-80 truncate" title="${s.class || ''}">${s.class || '—'}</td>
+      <td class="py-2.5 px-2 sm:px-3 opacity-80 truncate">${s.batch || '—'}</td>
+      <td class="py-2.5 px-2 sm:px-3 opacity-80 ltr-only truncate">${s.phone || '—'}</td>
+      <td class="py-2.5 px-2 sm:px-3 opacity-80">${docCount ? '📎' + docCount : '—'}</td>
+      <td class="py-2.5 px-2 sm:px-3 text-right relative">
+        <button type="button" onclick="toggleStudentActionsMenu(event, '${s.id}', '${status}')" title="Actions" class="hover:text-gold-500 px-2 py-1 rounded-md hover:bg-gold-500/10">⋮</button>
       </td>
     </tr>`;
   }).join('');
 }
 
-let adminStudentsCache = [];
+let studentActionsMenuEl = null;
+
+function closeStudentActionsMenu(){
+  if(studentActionsMenuEl){ studentActionsMenuEl.remove(); studentActionsMenuEl = null; }
+  document.removeEventListener('click', closeStudentActionsMenu);
+  window.removeEventListener('resize', closeStudentActionsMenu);
+}
+
+function toggleStudentActionsMenu(evt, id, status){
+  evt.stopPropagation();
+  // If a menu is already open, close it (acts as a toggle)
+  if(studentActionsMenuEl){ closeStudentActionsMenu(); return; }
+
+  const btn = evt.currentTarget;
+  const rect = btn.getBoundingClientRect();
+  const menuHeight = 132; // approx height of the 3-item menu
+  const spaceBelow = window.innerHeight - rect.bottom;
+  const openUpward = spaceBelow < menuHeight && rect.top > menuHeight;
+
+  const menu = document.createElement('div');
+  menu.className = 'fixed z-[90] w-40 rounded-lg border border-gold-500/30 bg-fog-50 dark:bg-emerald-950 shadow-xl py-1.5 text-sm';
+  menu.style.left = Math.max(8, rect.right - 160) + 'px';
+  menu.style.top = openUpward ? (rect.top - menuHeight - 6) + 'px' : (rect.bottom + 6) + 'px';
+  menu.innerHTML = `
+    <button onclick="closeStudentActionsMenu(); openStudentModal('${id}')" class="w-full text-left px-4 py-2 hover:bg-gold-500/10 flex items-center gap-2">✏️ Edit</button>
+    <button onclick="closeStudentActionsMenu(); toggleAdminStudentStatus('${id}','${status}')" class="w-full text-left px-4 py-2 hover:bg-gold-500/10 flex items-center gap-2">⏻ ${status==='active' ? 'Suspend' : 'Activate'}</button>
+    <button onclick="closeStudentActionsMenu(); deleteAdminStudent('${id}')" class="w-full text-left px-4 py-2 hover:bg-red-500/10 text-red-500 flex items-center gap-2">🗑️ Delete</button>
+  `;
+  document.body.appendChild(menu);
+  studentActionsMenuEl = menu;
+
+  setTimeout(() => {
+    document.addEventListener('click', closeStudentActionsMenu);
+    window.addEventListener('resize', closeStudentActionsMenu);
+  }, 0);
+}
+
+function renderStudentDocList(docs){
+  const box = document.getElementById('admStudentDocList');
+  if(!docs || docs.length === 0){ box.innerHTML = ''; return; }
+  box.innerHTML = docs.map((d,i) => `
+    <span class="text-xs px-2.5 py-1 rounded-full bg-gold-500/10 border border-gold-500/30 inline-flex items-center gap-1.5">
+      <a href="${d.url}" target="_blank" rel="noopener" class="hover:underline">📎 ${d.name || 'Document ' + (i+1)}</a>
+      <button type="button" onclick="deleteStudentDoc(${i})" title="Delete document" class="text-red-500 hover:text-red-700 font-bold leading-none">✕</button>
+    </span>`).join('');
+}
+
+async function deleteStudentDoc(index){
+  if(!confirm('Delete this document?')) return;
+  const idField = document.getElementById('admStudentId');
+  let documents = [];
+  try{ documents = JSON.parse(idField.dataset.docs || '[]'); }catch(_){ documents = []; }
+  const doc = documents[index];
+  if(!doc) return;
+
+  // Try to remove the underlying file from storage too (best-effort — ok if it fails/not found)
+  try{
+    const marker = '/student-documents/';
+    const idx = doc.url.indexOf(marker);
+    if(idx !== -1){
+      const path = doc.url.slice(idx + marker.length);
+      await supabaseClient.storage.from('student-documents').remove([path]);
+    }
+  }catch(_){}
+
+  documents.splice(index, 1);
+  idField.dataset.docs = JSON.stringify(documents);
+  renderStudentDocList(documents);
+
+  // If editing an existing student, persist the removal immediately
+  const id = idField.value;
+  if(id){
+    const { error } = await supabaseClient.from('students').update({ documents }).eq('id', id);
+    if(error){ alert('Could not remove document from record: ' + error.message); return; }
+    loadAdminStudents();
+  }
+}
+
+function populateStudentClassOptions(currentValue){
+  const sel = document.getElementById('admStudentClass');
+  if(!sel) return;
+  let options = COURSE_OPTIONS.slice();
+  if(currentValue && !options.includes(currentValue)) options.push(currentValue);
+  sel.innerHTML = '<option value="">— Select Class —</option>' + options.map(c => `<option value="${c}">${c}</option>`).join('');
+  sel.value = currentValue || '';
+}
 
 function openStudentModal(id){
   document.getElementById('studentForm').reset();
   document.getElementById('admStudentId').value = '';
+  document.getElementById('admStudentId').dataset.docs = '[]';
   document.getElementById('studentModalTitle').textContent = 'Add Student';
+  document.getElementById('admStudentDocUploadStatus').textContent = '\u00A0';
+  renderStudentDocList([]);
+  populateStudentClassOptions('');
   if(id){
     supabaseClient.from('students').select('*').eq('id', id).single().then(({data:s}) => {
       if(!s) return;
       document.getElementById('studentModalTitle').textContent = 'Edit Student';
       document.getElementById('admStudentId').value = s.id;
+      document.getElementById('admStudentId').dataset.docs = JSON.stringify(s.documents || []);
       document.getElementById('admStudentName').value = s.name || '';
       document.getElementById('admStudentFather').value = s.father_name || '';
-      document.getElementById('admStudentClass').value = s.class || '';
+      populateStudentClassOptions(s.class || '');
+      document.getElementById('admStudentBatch').value = s.batch || '';
+      document.getElementById('admStudentSection').value = s.section || '';
       document.getElementById('admStudentPhone').value = s.phone || '';
       document.getElementById('admStudentStatus').value = s.status || 'active';
+      renderStudentDocList(s.documents || []);
     });
   }
   document.getElementById('studentModal').classList.remove('hidden');
@@ -1926,19 +2587,45 @@ function closeStudentModal(){
 
 async function saveAdminStudent(e){
   e.preventDefault();
-  const id = document.getElementById('admStudentId').value;
+  const idField = document.getElementById('admStudentId');
+  const id = idField.value;
+  let documents = [];
+  try{ documents = JSON.parse(idField.dataset.docs || '[]'); }catch(_){ documents = []; }
+
+  // Upload a new document, if one was selected
+  const fileInput = document.getElementById('admStudentDocFile');
+  const statusEl = document.getElementById('admStudentDocUploadStatus');
+  if(fileInput.files && fileInput.files[0]){
+    const file = fileInput.files[0];
+    const studentIdForPath = id || crypto.randomUUID();
+    if(!id) idField.value = studentIdForPath; // reuse this id for insert below
+    const path = `${studentIdForPath}/${Date.now()}_${file.name}`;
+    statusEl.textContent = 'Uploading document…';
+    const { error: upErr } = await supabaseClient.storage.from('student-documents').upload(path, file, { upsert: true });
+    if(upErr){
+      statusEl.textContent = 'Upload failed: ' + upErr.message;
+    } else {
+      const { data: pub } = supabaseClient.storage.from('student-documents').getPublicUrl(path);
+      documents.push({ name: file.name, url: pub.publicUrl, uploaded_at: new Date().toISOString() });
+      statusEl.textContent = 'Document uploaded ✓';
+    }
+  }
+
   const payload = {
     name: document.getElementById('admStudentName').value.trim(),
     father_name: document.getElementById('admStudentFather').value.trim(),
     class: document.getElementById('admStudentClass').value.trim(),
+    batch: document.getElementById('admStudentBatch').value.trim(),
+    section: document.getElementById('admStudentSection').value.trim(),
     phone: document.getElementById('admStudentPhone').value.trim(),
-    status: document.getElementById('admStudentStatus').value
+    status: document.getElementById('admStudentStatus').value,
+    documents
   };
   let error;
   if(id){
     ({ error } = await supabaseClient.from('students').update(payload).eq('id', id));
   } else {
-    payload.id = crypto.randomUUID();
+    payload.id = idField.value || crypto.randomUUID();
     payload.assignments = 'No assignments yet';
     payload.attendance = { percent: 0, note: 'No classes recorded yet' };
     payload.fees = 'Not set yet — contact the academy';
@@ -1970,17 +2657,243 @@ async function deleteAdminStudent(id){
   loadAdminDashboard();
 }
 
+function getFilteredStudentsForExport(){
+  const q = (document.getElementById('admStudentSearch').value || '').trim().toLowerCase();
+  const classFilter = document.getElementById('admStudentFilterClass').value;
+  const statusFilter = document.getElementById('admStudentFilterStatus').value;
+  let rows = adminStudentsCache;
+  if(q) rows = rows.filter(s => (s.name||'').toLowerCase().includes(q) || (s.father_name||'').toLowerCase().includes(q) || (s.phone||'').toLowerCase().includes(q));
+  if(classFilter) rows = rows.filter(s => s.class === classFilter);
+  if(statusFilter) rows = rows.filter(s => (s.status||'active') === statusFilter);
+  return rows;
+}
+
+function exportStudentsPDF(){
+  const rows = getFilteredStudentsForExport();
+  if(rows.length === 0){ alert('No students to export.'); return; }
+  if(!window.jspdf){ alert('PDF library did not load — check your internet connection and try again.'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  doc.setFontSize(14);
+  doc.text('Sabeel ul Huda Academy — Students', 14, 15);
+  doc.autoTable({
+    startY: 22,
+    head: [['Name','Father','Class','Batch','Section','Phone','Status']],
+    body: rows.map(s => [s.name||'—', s.father_name||'—', s.class||'—', s.batch||'—', s.section||'—', s.phone||'—', s.status||'active']),
+    styles: { fontSize: 9 },
+    headStyles: { fillColor: [11,110,79] }
+  });
+  doc.save('students_' + new Date().toISOString().slice(0,10) + '.pdf');
+}
+
+function exportStudentsExcel(){
+  const rows = getFilteredStudentsForExport();
+  if(rows.length === 0){ alert('No students to export.'); return; }
+  if(!window.XLSX){ alert('Excel library did not load — check your internet connection and try again.'); return; }
+  const data = rows.map(s => ({
+    Name: s.name||'', Father: s.father_name||'', Class: s.class||'', Batch: s.batch||'',
+    Section: s.section||'', Phone: s.phone||'', Status: s.status||'active'
+  }));
+  const ws = XLSX.utils.json_to_sheet(data);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Students');
+  XLSX.writeFile(wb, 'students_' + new Date().toISOString().slice(0,10) + '.xlsx');
+}
+
+let adminTeachersFullCache = [];
+let adminTeacherStudentCounts = {};
+
 async function loadAdminTeachers(){
-  const listEl = document.getElementById('admTeachersList');
-  listEl.innerHTML = '<p class="opacity-60 text-sm">Loading…</p>';
-  const { data: rows, error } = await supabaseClient.from('users').select('*').eq('role','teacher').eq('approved', true);
-  if(error){ listEl.innerHTML = '<p class="text-red-500 text-sm">Could not load teachers.</p>'; return; }
-  if(!rows || rows.length===0){ listEl.innerHTML = '<p class="opacity-60 text-sm">No approved teachers yet.</p>'; return; }
-  listEl.innerHTML = rows.map(t => `
-    <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-5 border border-gold-500/20 flex items-center gap-3">
-      <div class="w-11 h-11 rounded-full bg-emerald-800 text-gold-400 flex items-center justify-center font-semibold">${(t.name||'?').charAt(0).toUpperCase()}</div>
-      <div><p class="font-semibold">${t.name || '(no name)'}</p><p class="text-xs opacity-60 ltr-only">${t.email || ''}</p></div>
-    </div>`).join('');
+  const tbody = document.getElementById('admTeachersTableBody');
+  tbody.innerHTML = '<tr><td colspan="7" class="py-6 text-center opacity-60 text-sm">Loading…</td></tr>';
+  const { data: rows, error } = await supabaseClient.from('users').select('*').eq('role','teacher').eq('approved', true).order('name');
+  if(error){ tbody.innerHTML = '<tr><td colspan="7" class="py-6 text-center text-red-500 text-sm">Could not load teachers.</td></tr>'; return; }
+  adminTeachersFullCache = rows || [];
+  // Count assigned students per teacher for the "Students" column
+  const { data: studentRows } = await supabaseClient.from('students').select('teacher_id');
+  adminTeacherStudentCounts = {};
+  (studentRows||[]).forEach(s => {
+    if(!s.teacher_id) return;
+    adminTeacherStudentCounts[s.teacher_id] = (adminTeacherStudentCounts[s.teacher_id]||0) + 1;
+  });
+  renderAdminTeachersTable();
+}
+
+function renderAdminTeachersTable(){
+  const tbody = document.getElementById('admTeachersTableBody');
+  const q = (document.getElementById('admTeacherSearch').value || '').toLowerCase().trim();
+  const statusFilter = document.getElementById('admTeacherFilterStatus').value;
+  let rows = adminTeachersFullCache.filter(t => {
+    const matchesQ = !q || (t.name||'').toLowerCase().includes(q) || (t.email||'').toLowerCase().includes(q);
+    const matchesStatus = !statusFilter || (t.status || 'active') === statusFilter;
+    return matchesQ && matchesStatus;
+  });
+  if(rows.length===0){ tbody.innerHTML = '<tr><td colspan="5" class="py-6 text-center opacity-60 text-sm">No teachers found.</td></tr>'; return; }
+  tbody.innerHTML = rows.map(t => {
+    const status = t.status || 'active';
+    const courses = (t.courses||[]).join(', ') || '<span class="opacity-50">—</span>';
+    const studentCount = adminTeacherStudentCounts[t.id] || 0;
+    const dotColor = status === 'active' ? 'bg-emerald-500' : 'bg-red-500';
+    return `<tr class="border-b border-gold-500/10 last:border-0">
+      <td class="py-3 px-2 sm:px-3 font-medium break-words align-top">
+        <span class="inline-block w-2 h-2 rounded-full ${dotColor} mr-1.5" title="${status === 'active' ? 'Active' : 'Suspended'}"></span>${t.name || '(no name)'}
+      </td>
+      <td class="py-3 px-2 sm:px-3 opacity-80 ltr-only break-words align-top">${t.email || ''}</td>
+      <td class="py-3 px-2 sm:px-3 opacity-80 truncate align-top" title="${courses.replace(/<[^>]+>/g,'')}">${courses}</td>
+      <td class="py-3 px-2 sm:px-3 opacity-80 align-top">${studentCount}</td>
+      <td class="py-3 px-2 sm:px-3 text-right relative align-top">
+        <button type="button" onclick="toggleTeacherActionsMenu(event, '${t.id}', '${status}')" title="Actions" class="hover:text-gold-500 px-1.5 py-1 rounded-md hover:bg-gold-500/10">⋮</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+let teacherActionsMenuEl = null;
+
+function closeTeacherActionsMenu(){
+  if(teacherActionsMenuEl){ teacherActionsMenuEl.remove(); teacherActionsMenuEl = null; }
+  document.removeEventListener('click', closeTeacherActionsMenu);
+  window.removeEventListener('resize', closeTeacherActionsMenu);
+}
+
+function toggleTeacherActionsMenu(evt, id, status){
+  evt.stopPropagation();
+  if(teacherActionsMenuEl){ closeTeacherActionsMenu(); return; }
+
+  const btn = evt.currentTarget;
+  const rect = btn.getBoundingClientRect();
+  const menuHeight = 132;
+  const spaceBelow = window.innerHeight - rect.bottom;
+  const openUpward = spaceBelow < menuHeight && rect.top > menuHeight;
+
+  const menu = document.createElement('div');
+  menu.className = 'fixed z-[90] w-40 rounded-lg border border-gold-500/30 bg-fog-50 dark:bg-emerald-950 shadow-xl py-1.5 text-sm';
+  menu.style.left = Math.max(8, rect.right - 160) + 'px';
+  menu.style.top = openUpward ? (rect.top - menuHeight - 6) + 'px' : (rect.bottom + 6) + 'px';
+  menu.innerHTML = `
+    <button onclick="closeTeacherActionsMenu(); openTeacherModal('${id}')" class="w-full text-left px-4 py-2 hover:bg-gold-500/10 flex items-center gap-2">✏️ Edit</button>
+    <button onclick="closeTeacherActionsMenu(); toggleAdminTeacherStatus('${id}','${status}')" class="w-full text-left px-4 py-2 hover:bg-gold-500/10 flex items-center gap-2">⏻ ${status==='active' ? 'Suspend' : 'Activate'}</button>
+    <button onclick="closeTeacherActionsMenu(); deleteAdminTeacher('${id}')" class="w-full text-left px-4 py-2 hover:bg-red-500/10 text-red-500 flex items-center gap-2">🗑️ Delete</button>
+  `;
+  document.body.appendChild(menu);
+  teacherActionsMenuEl = menu;
+
+  setTimeout(() => {
+    document.addEventListener('click', closeTeacherActionsMenu);
+    window.addEventListener('resize', closeTeacherActionsMenu);
+  }, 0);
+}
+
+function openTeacherModal(id){
+  document.getElementById('teacherForm').reset();
+  document.getElementById('admTeacherFormMsg').classList.add('hidden');
+  if(id){
+    const t = adminTeachersFullCache.find(x => x.id === id);
+    if(!t) return;
+    document.getElementById('teacherModalTitle').textContent = 'Edit Teacher';
+    document.getElementById('admTeacherId').value = t.id;
+    document.getElementById('admTeacherName').value = t.name || '';
+    document.getElementById('admTeacherEmail').value = t.email || '';
+    document.getElementById('admTeacherEmail').disabled = true;
+    document.getElementById('admTeacherPasswordWrap').classList.add('hidden');
+    document.getElementById('admTeacherPhone').value = t.phone || '';
+    renderTeacherCoursesCheckboxes(t.courses || []);
+    document.getElementById('admTeacherTimetable').value = t.timetable || '';
+    document.getElementById('admTeacherStatus').value = t.status || 'active';
+  } else {
+    document.getElementById('teacherModalTitle').textContent = 'Add Teacher';
+    document.getElementById('admTeacherId').value = '';
+    document.getElementById('admTeacherEmail').disabled = false;
+    document.getElementById('admTeacherPasswordWrap').classList.remove('hidden');
+    renderTeacherCoursesCheckboxes([]);
+  }
+  document.getElementById('teacherModal').classList.remove('hidden');
+}
+
+function renderTeacherCoursesCheckboxes(selected){
+  const box = document.getElementById('admTeacherCoursesBox');
+  if(!box) return;
+  const sel = selected || [];
+  box.innerHTML = COURSE_OPTIONS.map(c => `
+    <label class="flex items-center gap-2 py-0.5 cursor-pointer">
+      <input type="checkbox" value="${c}" ${sel.includes(c) ? 'checked' : ''} class="admTeacherCourseChk rounded border-gold-500/40 text-gold-500 focus:ring-gold-500">
+      <span>${c}</span>
+    </label>`).join('');
+}
+
+function closeTeacherModal(){
+  document.getElementById('teacherModal').classList.add('hidden');
+}
+
+function splitCsv(val){
+  return (val||'').split(',').map(s => s.trim()).filter(Boolean);
+}
+
+async function saveAdminTeacher(e){
+  e.preventDefault();
+  const msg = document.getElementById('admTeacherFormMsg');
+  msg.classList.add('hidden');
+  const id = document.getElementById('admTeacherId').value;
+  const selectedCourses = Array.from(document.querySelectorAll('.admTeacherCourseChk:checked')).map(el => el.value);
+  const profile = {
+    name: document.getElementById('admTeacherName').value,
+    phone: document.getElementById('admTeacherPhone').value,
+    courses: selectedCourses,
+    status: document.getElementById('admTeacherStatus').value
+  };
+  if(id){
+    // Edit existing teacher profile
+    const { error } = await supabaseClient.from('users').update(profile).eq('id', id);
+    if(error){
+      msg.textContent = '❌ Could not save: ' + error.message;
+      msg.className = 'text-sm text-red-500';
+      msg.classList.remove('hidden');
+      return false;
+    }
+  } else {
+    // Create new teacher via a server-side Edge Function (service role) —
+    // this avoids the client-side auth.signUp() bug where creating a new
+    // account would silently log the admin OUT and INTO the new teacher's session.
+    const email = document.getElementById('admTeacherEmail').value;
+    const password = document.getElementById('admTeacherPassword').value;
+    if(!password || password.length < 6){
+      msg.textContent = '❌ Please set a password of at least 6 characters.';
+      msg.className = 'text-sm text-red-500';
+      msg.classList.remove('hidden');
+      return false;
+    }
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    const { data: fnResult, error: fnError } = await supabaseClient.functions.invoke('create-teacher', {
+      body: { name: profile.name, email, phone: profile.phone, password, courses: profile.courses, status: profile.status },
+      headers: { Authorization: `Bearer ${session?.access_token}` }
+    });
+    if(fnError || (fnResult && fnResult.error)){
+      msg.textContent = '❌ Could not create account: ' + (fnResult?.error || fnError.message);
+      msg.className = 'text-sm text-red-500';
+      msg.classList.remove('hidden');
+      return false;
+    }
+  }
+  closeTeacherModal();
+  loadAdminTeachers();
+  loadAdminDashboard();
+  return false;
+}
+
+async function toggleAdminTeacherStatus(id, currentStatus){
+  const newStatus = currentStatus === 'active' ? 'suspended' : 'active';
+  const { error } = await supabaseClient.from('users').update({ status: newStatus }).eq('id', id);
+  if(error){ alert('Could not update status: ' + error.message); return; }
+  loadAdminTeachers();
+}
+
+async function deleteAdminTeacher(id){
+  if(!confirm('Delete this teacher profile? Their assigned students will become unassigned. (Note: this removes the profile only — the login account itself must be deleted from the Supabase Dashboard under Authentication, since that requires admin privileges not available in the browser.)')) return;
+  await supabaseClient.from('students').update({ teacher_id: null }).eq('teacher_id', id);
+  const { error } = await supabaseClient.from('users').delete().eq('id', id);
+  if(error){ alert('Could not delete: ' + error.message); return; }
+  loadAdminTeachers();
+  loadAdminDashboard();
 }
 
 async function loadAdminApprovals(){
@@ -2050,7 +2963,11 @@ function openAssignModal(studentId){
   const courseSel = document.getElementById('assignCourse');
   courseSel.innerHTML = '<option value="">— Select Course —</option>' + COURSE_OPTIONS.map(c => `<option value="${c}" ${s.course===c?'selected':''}>${c}</option>`).join('');
   const teacherSel = document.getElementById('assignTeacher');
-  teacherSel.innerHTML = '<option value="">— Select Teacher —</option>' + adminTeachersCache.map(t => `<option value="${t.id}" ${s.teacher_id===t.id?'selected':''}>${t.name}</option>`).join('');
+  if(!adminTeachersCache || adminTeachersCache.length===0){
+    teacherSel.innerHTML = '<option value="">— No approved teachers found —</option>';
+  } else {
+    teacherSel.innerHTML = '<option value="">— Select Teacher —</option>' + adminTeachersCache.map(t => `<option value="${t.id}" ${s.teacher_id===t.id?'selected':''}>${t.name}</option>`).join('');
+  }
   document.getElementById('assignModal').classList.remove('hidden');
 }
 
@@ -2063,8 +2980,12 @@ async function saveAssign(e){
   const id = document.getElementById('assignStudentId').value;
   const course = document.getElementById('assignCourse').value || null;
   const teacher_id = document.getElementById('assignTeacher').value || null;
-  const { error } = await supabaseClient.from('students').update({ course, teacher_id }).eq('id', id);
+  const { data, error } = await supabaseClient.from('students').update({ course, teacher_id }).eq('id', id).select();
   if(error){ alert('Could not save: ' + error.message); return false; }
+  if(!data || data.length===0){
+    alert('Save blocked: no student row was updated. This usually means a database permission (RLS) rule is preventing this update — please check the Supabase policies on the students table.');
+    return false;
+  }
   closeAssignModal();
   loadAdminClasses();
   return false;
