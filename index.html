@@ -973,8 +973,28 @@
               </div>
             </div>
           </div>
-          <div id="admintab-settings" class="admin-panel hidden bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-8 border border-gold-500/20 text-center">
-            <p class="opacity-60 text-sm">⚙️ Academy settings are coming soon.</p>
+          <div id="admintab-settings" class="admin-panel hidden space-y-6">
+            <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-6 border border-gold-500/20">
+              <h3 class="font-display text-lg font-semibold mb-1">🏫 Academy Information</h3>
+              <p class="text-xs opacity-60 mb-5">Ye maloomat website ke Contact/About sections mein istemal ho sakti hain.</p>
+              <form onsubmit="return saveAcademySettings(event)" class="space-y-3 max-w-lg">
+                <input id="setAcademyName" placeholder="Academy Name" class="w-full px-4 py-2.5 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+                <input id="setAcademyAddress" placeholder="Address" class="w-full px-4 py-2.5 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+                <input id="setAcademyPhone" placeholder="Phone Number" class="w-full px-4 py-2.5 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+                <input id="setAcademyEmail" type="email" placeholder="Contact Email" class="w-full px-4 py-2.5 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+                <button class="btn-gold px-5 py-2.5 rounded-lg font-semibold text-sm">Save Academy Info</button>
+              </form>
+            </div>
+
+            <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-6 border border-gold-500/20">
+              <h3 class="font-display text-lg font-semibold mb-1">🔒 Change Password</h3>
+              <p class="text-xs opacity-60 mb-5">Apna admin account password update karein.</p>
+              <form onsubmit="return saveAccountPassword(event)" class="space-y-3 max-w-lg">
+                <input id="setNewPassword" type="password" required minlength="6" placeholder="New Password (min 6 characters)" class="w-full px-4 py-2.5 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+                <input id="setConfirmPassword" type="password" required minlength="6" placeholder="Confirm New Password" class="w-full px-4 py-2.5 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+                <button class="btn-gold px-5 py-2.5 rounded-lg font-semibold text-sm">Update Password</button>
+              </form>
+            </div>
           </div>
 
           <!-- User Approvals tab -->
@@ -1839,6 +1859,7 @@ function switchAdminTab(tab){
   if(tab === 'attendance') loadAdminAttendance();
   if(tab === 'tasks') loadAdminTasks();
   if(tab === 'reports') loadAdminReports();
+  if(tab === 'settings') loadAcademySettings();
 }
 
 async function loadAdminDashboard(){
@@ -2209,6 +2230,45 @@ async function loadAdminReports(){
       <td class="py-3 px-4 opacity-80">${rate === null ? 'No data' : rate + '%'}</td>
     </tr>`;
   }).join('');
+}
+
+/* ================= SETTINGS ================= */
+
+async function loadAcademySettings(){
+  const { data, error } = await supabaseClient.from('academy_settings').select('*').eq('id', 1).single();
+  if(error || !data) return;
+  document.getElementById('setAcademyName').value = data.name || '';
+  document.getElementById('setAcademyAddress').value = data.address || '';
+  document.getElementById('setAcademyPhone').value = data.phone || '';
+  document.getElementById('setAcademyEmail').value = data.email || '';
+}
+
+async function saveAcademySettings(e){
+  e.preventDefault();
+  const payload = {
+    id: 1,
+    name: document.getElementById('setAcademyName').value.trim(),
+    address: document.getElementById('setAcademyAddress').value.trim(),
+    phone: document.getElementById('setAcademyPhone').value.trim(),
+    email: document.getElementById('setAcademyEmail').value.trim()
+  };
+  const { error } = await supabaseClient.from('academy_settings').upsert(payload, { onConflict: 'id' });
+  if(error){ alert('Could not save: ' + error.message); return false; }
+  showToast('Academy info saved.');
+  return false;
+}
+
+async function saveAccountPassword(e){
+  e.preventDefault();
+  const pass = document.getElementById('setNewPassword').value;
+  const confirm2 = document.getElementById('setConfirmPassword').value;
+  if(pass !== confirm2){ alert('Passwords do not match.'); return false; }
+  const { error } = await supabaseClient.auth.updateUser({ password: pass });
+  if(error){ alert('Could not update password: ' + error.message); return false; }
+  document.getElementById('setNewPassword').value = '';
+  document.getElementById('setConfirmPassword').value = '';
+  showToast('Password updated successfully.');
+  return false;
 }
 
 /* ================= END ADMIN DASHBOARD ================= */
