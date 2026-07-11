@@ -802,6 +802,12 @@
       </div>
     </div>
 
+    <!-- ---------- STUDENT HOMEWORK LIST ---------- -->
+    <div id="portal-student-homework" class="hidden reveal mt-6 bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-6 border border-gold-500/20">
+      <h4 class="font-display font-semibold text-lg mb-4">📚 Homework</h4>
+      <div id="studentHomeworkList" class="space-y-4 text-sm">Loading…</div>
+    </div>
+
     <!-- ---------- PARENT DASHBOARD ---------- -->
     <div id="portal-parent" class="hidden reveal space-y-6">
       <div id="parentChildTabs" class="flex flex-wrap gap-2"></div>
@@ -1390,11 +1396,34 @@
             <option value="">— Select Student —</option>
           </select>
           <input type="date" id="taskDue" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+          <div>
+            <label class="text-xs font-semibold opacity-70">Attach PDF / Image (optional)</label>
+            <input type="file" id="taskFile" accept=".pdf,image/*" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 mt-1 text-sm">
+            <p id="taskFileStatus" class="text-xs opacity-60 mt-1"></p>
+          </div>
           <div class="flex gap-3 pt-2">
             <button type="button" onclick="closeTaskModal()" class="flex-1 py-2.5 rounded-lg font-semibold text-sm border border-gold-500/40">Cancel</button>
             <button class="flex-1 btn-gold py-2.5 rounded-lg font-semibold text-sm">Save</button>
           </div>
         </form>
+      </div>
+    </div>
+
+    <!-- Homework Submissions review modal -->
+    <div id="hwSubmissionsModal" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-5 bg-black/50 overflow-y-auto">
+      <div class="bg-fog-50 dark:bg-emerald-950 rounded-2xl p-6 w-full max-w-2xl border border-gold-500/20 my-10">
+        <div class="flex justify-between items-center mb-4">
+          <h4 class="font-display text-lg font-semibold" id="hwSubmissionsTitle">Submissions</h4>
+          <button onclick="closeHwSubmissionsModal()" class="text-sm opacity-60 hover:opacity-100">✕ Close</button>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead><tr class="text-left border-b border-gold-500/20 opacity-70">
+              <th class="py-2 px-4">Student</th><th class="py-2 px-4">File</th><th class="py-2 px-4">Status</th><th class="py-2 px-4">Marks</th><th class="py-2 px-4">Feedback</th><th class="py-2 px-4"></th>
+            </tr></thead>
+            <tbody id="hwSubmissionsTableBody"><tr><td colspan="6" class="py-6 text-center opacity-60 text-sm">Loading…</td></tr></tbody>
+          </table>
+        </div>
       </div>
     </div>
 
@@ -2243,9 +2272,11 @@ window.addEventListener('beforeunload', () => {
 async function loadStudentDashboard(uid){
   const setAll = (msg) => ['sAssignments','sAttendance','sFees','sProgress','sCertificates','sRecordings'].forEach(id=>document.getElementById(id).textContent=msg);
   setAll('Loading…');
+  document.getElementById('studentHomeworkList').innerHTML = 'Loading…';
   try{
     const { data: studentId, error: idErr } = await supabaseClient.rpc('my_student_id');
     if(idErr || !studentId){ setAll('No record found yet — contact the academy.'); return; }
+    window.__myStudentId = studentId;
 
     const [{ data: hw }, { data: att }, { data: invoices }, { data: certs }] = await Promise.all([
       supabaseClient.from('homework_submissions').select('status').eq('student_id', studentId),
@@ -2269,6 +2300,73 @@ async function loadStudentDashboard(uid){
     document.getElementById('sProgress').textContent = totalAtt ? `${pct}% attendance · ${pendingHw} homework pending` : 'Not started yet';
     document.getElementById('sCertificates').textContent = (certs && certs.length) ? `${certs.length} earned` : 'None yet';
     document.getElementById('sRecordings').textContent = 'Check Live Classes tab';
+
+    await loadStudentHomeworkList(studentId);
+    document.getElementById('portal-student-homework').classList.remove('hidden');
+  }catch(e){
+    setAll('Could not load — please refresh.');
+  }
+}
+
+async function loadStudentHomeworkList(studentId){
+  const box = document.getElementById('studentHomeworkList');
+  box.innerHTML = 'Loading…';
+  const { data: myClass } = await supabaseClient.from('students').select('class').eq('id', studentId).single();
+  const classFilter = myClass && myClass.class ? myClass.class : '__none__';
+
+  const { data: tasksRows, error } = await supabaseClient.from('tasks')
+    .select('*')
+    .or(`student_id.eq.${studentId},class.eq.${classFilter}`)
+    .order('due_date', { ascending: true });
+  if(error){ box.innerHTML = '<p class="text-red-500">Could not load homework.</p>'; return; }
+  if(!tasksRows || tasksRows.length===0){ box.innerHTML = '<p class="opacity-60">No homework assigned yet.</p>'; return; }
+
+  const { data: mySubs } = await supabaseClient.from('homework_submissions').select('*').eq('student_id', studentId);
+  const subMap = {};
+  (mySubs||[]).forEach(s => subMap[s.task_id] = s);
+
+  box.innerHTML = tasksRows.map(t => {
+    const sub = subMap[t.id];
+    const statusLabel = sub ? sub.status : 'not submitted';
+    const statusColor = sub && sub.status==='reviewed' ? 'text-emerald-600' : sub && sub.status==='submitted' ? 'text-gold-600' : 'opacity-60';
+    return `<div class="border-b border-gold-500/10 last:border-0 pb-4 last:pb-0" data-task-id="${t.id}">
+      <div class="flex justify-between items-start gap-3 flex-wrap">
+        <div>
+          <p class="font-semibold">${t.title}${t.file_url ? ` <a href="${t.file_url}" target="_blank" class="text-xs text-gold-600 dark:text-gold-400 underline">📎 View</a>` : ''}</p>
+          ${t.description ? `<p class="text-xs opacity-70 mt-0.5">${t.description}</p>` : ''}
+          <p class="text-xs opacity-60 mt-0.5">Due: ${t.due_date || '—'} · Status: <span class="${statusColor} font-medium">${statusLabel}</span>${sub && sub.marks!=null ? ` · Marks: ${sub.marks}` : ''}</p>
+          ${sub && sub.feedback ? `<p class="text-xs opacity-70 mt-0.5">Feedback: ${sub.feedback}</p>` : ''}
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="file" accept=".pdf,image/*" class="hw-submit-file text-xs" ${sub && sub.status==='reviewed' ? 'disabled' : ''}>
+          <button onclick="submitHomework('${t.id}','${studentId}')" class="btn-gold px-3 py-1.5 rounded-lg text-xs font-semibold" ${sub && sub.status==='reviewed' ? 'disabled' : ''}>${sub ? 'Resubmit' : 'Submit'}</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function submitHomework(taskId, studentId){
+  const row = document.querySelector(`#studentHomeworkList div[data-task-id="${taskId}"]`);
+  const fileInput = row.querySelector('.hw-submit-file');
+  if(!fileInput.files || !fileInput.files[0]){ alert('Please choose a file to submit.'); return; }
+  const file = fileInput.files[0];
+  const path = `${studentId}/${taskId}_${Date.now()}_${file.name}`;
+  const { error: upErr } = await supabaseClient.storage.from('homework-files').upload(path, file, { upsert: true });
+  if(upErr){ alert('Upload failed: ' + upErr.message); return; }
+  const { data: pub } = supabaseClient.storage.from('homework-files').getPublicUrl(path);
+
+  const { error } = await supabaseClient.from('homework_submissions').upsert({
+    task_id: taskId,
+    student_id: studentId,
+    file_url: pub.publicUrl,
+    status: 'submitted',
+    submitted_at: new Date().toISOString()
+  }, { onConflict: 'task_id,student_id' });
+  if(error){ alert('Could not submit: ' + error.message); return; }
+  alert('Homework submitted!');
+  loadStudentHomeworkList(studentId);
+}
   }catch(err){ setAll('Could not load data.'); }
 }
 
@@ -3485,13 +3583,27 @@ function closeTaskModal(){
 async function saveTask(e){
   e.preventDefault();
   const type = document.getElementById('taskAssignType').value;
+  const statusEl = document.getElementById('taskFileStatus');
+  let file_url = null;
+  const fileInput = document.getElementById('taskFile');
+  if(fileInput.files && fileInput.files[0]){
+    const file = fileInput.files[0];
+    const path = `${crypto.randomUUID()}_${file.name}`;
+    statusEl.textContent = 'Uploading file…';
+    const { error: upErr } = await supabaseClient.storage.from('homework-files').upload(path, file, { upsert: true });
+    if(upErr){ statusEl.textContent = 'Upload failed: ' + upErr.message; return false; }
+    const { data: pub } = supabaseClient.storage.from('homework-files').getPublicUrl(path);
+    file_url = pub.publicUrl;
+    statusEl.textContent = 'File attached ✓';
+  }
   const payload = {
     title: document.getElementById('taskTitle').value.trim(),
     description: document.getElementById('taskDesc').value.trim() || null,
     due_date: document.getElementById('taskDue').value || null,
     class: type === 'class' ? (document.getElementById('taskClass').value || null) : null,
     student_id: type === 'student' ? (document.getElementById('taskStudent').value || null) : null,
-    status: 'pending'
+    status: 'pending',
+    file_url
   };
   const { error } = await supabaseClient.from('tasks').insert(payload);
   if(error){ alert('Could not save task: ' + error.message); return false; }
@@ -3519,11 +3631,12 @@ async function loadAdminTasks(){
       ? '<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">Completed</span>'
       : '<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-gold-500/15 text-gold-700 dark:text-gold-400">Pending</span>';
     return `<tr class="border-b border-gold-500/10 last:border-0">
-      <td class="py-3 px-4 font-medium">${t.title}</td>
+      <td class="py-3 px-4 font-medium">${t.title}${t.file_url ? ` <a href="${t.file_url}" target="_blank" class="text-xs text-gold-600 dark:text-gold-400 underline">📎</a>` : ''}</td>
       <td class="py-3 px-4 opacity-80">${forWhom}</td>
       <td class="py-3 px-4 opacity-80">${t.due_date || '—'}</td>
       <td class="py-3 px-4">${statusBadge}</td>
       <td class="py-3 px-4 text-right space-x-2 whitespace-nowrap">
+        <button onclick="openHwSubmissionsModal('${t.id}','${(t.title||'').replace(/'/g,"\\'")}')" title="View submissions" class="hover:text-gold-500">📥</button>
         <button onclick="toggleTaskStatus('${t.id}','${t.status}')" title="Toggle status" class="hover:text-gold-500">✅</button>
         <button onclick="deleteTask('${t.id}')" title="Delete" class="hover:text-red-500">🗑️</button>
       </td>
@@ -3544,6 +3657,68 @@ async function deleteTask(id){
   if(error){ alert('Could not delete: ' + error.message); return; }
   loadAdminTasks();
 }
+
+/* ---------------- HOMEWORK SUBMISSIONS (teacher/admin review) ---------------- */
+let currentHwTaskId = null;
+
+async function openHwSubmissionsModal(taskId, taskTitle){
+  currentHwTaskId = taskId;
+  document.getElementById('hwSubmissionsTitle').textContent = 'Submissions — ' + taskTitle;
+  document.getElementById('hwSubmissionsModal').classList.remove('hidden');
+  await loadHwSubmissions();
+}
+
+function closeHwSubmissionsModal(){
+  document.getElementById('hwSubmissionsModal').classList.add('hidden');
+  currentHwTaskId = null;
+}
+
+async function loadHwSubmissions(){
+  const tbody = document.getElementById('hwSubmissionsTableBody');
+  tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center opacity-60 text-sm">Loading…</td></tr>';
+  const { data: subs, error } = await supabaseClient.from('homework_submissions').select('*').eq('task_id', currentHwTaskId);
+  if(error){ tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-red-500 text-sm">Could not load submissions.</td></tr>'; return; }
+  if(!subs || subs.length===0){ tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center opacity-60 text-sm">No submissions yet.</td></tr>'; return; }
+  if(adminClassesStudentsCache.length===0){
+    const { data: students } = await supabaseClient.from('students').select('*').order('name');
+    adminClassesStudentsCache = students || [];
+  }
+  tbody.innerHTML = subs.map(s => {
+    const student = adminClassesStudentsCache.find(st => st.id === s.student_id);
+    return `<tr class="border-b border-gold-500/10 last:border-0" data-sub-id="${s.id}">
+      <td class="py-2 px-4 font-medium">${student ? student.name : '—'}</td>
+      <td class="py-2 px-4">${s.file_url ? `<a href="${s.file_url}" target="_blank" class="text-gold-600 dark:text-gold-400 underline text-xs">View file</a>` : '—'}</td>
+      <td class="py-2 px-4">
+        <select class="hw-status-select px-2 py-1 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 text-xs">
+          <option value="pending" ${s.status==='pending'?'selected':''}>Pending</option>
+          <option value="submitted" ${s.status==='submitted'?'selected':''}>Submitted</option>
+          <option value="reviewed" ${s.status==='reviewed'?'selected':''}>Reviewed</option>
+        </select>
+      </td>
+      <td class="py-2 px-4"><input type="number" class="hw-marks-input w-16 px-2 py-1 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 text-xs" value="${s.marks ?? ''}" min="0" max="100"></td>
+      <td class="py-2 px-4"><input type="text" class="hw-feedback-input w-full px-2 py-1 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 text-xs" value="${s.feedback ? s.feedback.replace(/"/g,'&quot;') : ''}" placeholder="Feedback"></td>
+      <td class="py-2 px-4"><button onclick="saveHwGrade('${s.id}')" class="text-xs font-semibold text-gold-600 dark:text-gold-400 underline">Save</button></td>
+    </tr>`;
+  }).join('');
+}
+
+async function saveHwGrade(subId){
+  const tr = document.querySelector(`#hwSubmissionsTableBody tr[data-sub-id="${subId}"]`);
+  const status = tr.querySelector('.hw-status-select').value;
+  const marksVal = tr.querySelector('.hw-marks-input').value;
+  const feedback = tr.querySelector('.hw-feedback-input').value.trim();
+  const payload = {
+    status,
+    marks: marksVal === '' ? null : Number(marksVal),
+    feedback: feedback || null,
+    reviewed_at: status === 'reviewed' ? new Date().toISOString() : null
+  };
+  const { error } = await supabaseClient.from('homework_submissions').update(payload).eq('id', subId);
+  if(error){ alert('Could not save: ' + error.message); return; }
+  alert('Saved.');
+}
+
+
 
 async function loadAdminReports(){
   const { data: students } = await supabaseClient.from('students').select('*');
