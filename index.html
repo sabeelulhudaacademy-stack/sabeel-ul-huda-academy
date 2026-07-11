@@ -5301,6 +5301,18 @@ const TAFSEER_EDITIONS = [
 const DEFAULT_TAFSEER_SLUG = 'ur-tafseer-ibn-e-kaseer';
 const tafseerCache = {};
 
+function normalizeArabic(text){
+  return text
+    .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED]/g, '') // tashkeel/diacritics remove
+    .replace(/[إأآا]/g, 'ا')
+    .replace(/ى/g, 'ي')
+    .replace(/ة/g, 'ه')
+    .replace(/ؤ/g, 'و')
+    .replace(/ئ/g, 'ي')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 async function runQuranSearch(e){
   if(e) e.preventDefault();
   const input = document.getElementById('quranQuery');
@@ -5312,14 +5324,25 @@ async function runQuranSearch(e){
   box.innerHTML = spinnerRow('تلاش جاری ہے...');
   if(count) count.textContent = '';
 
+  // Agar input Arabic script me hai to sirf Arabic edition search karo (tashkeel/diacritics normalize karke),
+  // warna sirf Urdu edition search karo. Isse Arabic lafz/ayah zyada theek se match hote hain.
+  const isArabicQuery = /[\u0600-\u06FF]/.test(q);
+  const searchQuery = isArabicQuery ? normalizeArabic(q) : q;
+
   try{
-    const [arRes, urRes] = await Promise.all([
-      fetch(`https://api.alquran.cloud/v1/search/${encodeURIComponent(q)}/all/ar`).then(r=>r.json()).catch(()=>null),
-      fetch(`https://api.alquran.cloud/v1/search/${encodeURIComponent(q)}/all/ur`).then(r=>r.json()).catch(()=>null)
-    ]);
     let matches = [];
-    if(arRes && arRes.code===200) matches = matches.concat(arRes.data.matches);
-    if(urRes && urRes.code===200) matches = matches.concat(urRes.data.matches);
+    if(isArabicQuery){
+      const arRes = await fetch(`https://api.alquran.cloud/v1/search/${encodeURIComponent(searchQuery)}/all/ar`).then(r=>r.json()).catch(()=>null);
+      if(arRes && arRes.code===200) matches = matches.concat(arRes.data.matches);
+      // Agar normalize karne ke bawajood kuch na mile, original (tashkeel wala) query se dobara koshish
+      if(!matches.length && searchQuery !== q){
+        const retry = await fetch(`https://api.alquran.cloud/v1/search/${encodeURIComponent(q)}/all/ar`).then(r=>r.json()).catch(()=>null);
+        if(retry && retry.code===200) matches = matches.concat(retry.data.matches);
+      }
+    } else {
+      const urRes = await fetch(`https://api.alquran.cloud/v1/search/${encodeURIComponent(searchQuery)}/all/ur`).then(r=>r.json()).catch(()=>null);
+      if(urRes && urRes.code===200) matches = matches.concat(urRes.data.matches);
+    }
 
     const seen = new Set();
     const uniq = [];
@@ -5484,11 +5507,17 @@ async function runHadithSearch(e){
       const sections = (urd && urd.metadata && urd.metadata.sections) || (ara && ara.metadata && ara.metadata.sections) || {};
 
       const source = urdList.length ? urdList : (ara ? ara.hadiths : []);
+      const isArabicQuery = /[\u0600-\u06FF]/.test(q);
+      const qNorm = isArabicQuery ? normalizeArabic(q) : q.toLowerCase();
       source.forEach(h => {
         const urduText = urd ? (urdList.find(x => x.hadithnumber === h.hadithnumber) || {}).text || '' : '';
         const arabicText = araBynum[h.hadithnumber] || (urd ? '' : h.text) || '';
-        const haystack = (urduText + ' ' + arabicText).toLowerCase();
-        if(haystack.includes(q.toLowerCase())){
+        // Arabic query: sirf Arabic text me (tashkeel normalize karke) dhoondo.
+        // Non-Arabic query: Urdu text me (case-insensitive) dhoondo.
+        const isMatch = isArabicQuery
+          ? normalizeArabic(arabicText).includes(qNorm)
+          : urduText.toLowerCase().includes(qNorm);
+        if(isMatch){
           const chapterTitle = sections[String(h.reference.book)] || '';
           const grade = (h.grades && h.grades.length) ? h.grades[0].grade : '';
           results.push({ book: slug, bookLabel: hadithBookLabel(slug), number: h.hadithnumber, chapter: chapterTitle, arabicText, urduText, grade });
