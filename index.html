@@ -887,6 +887,7 @@
           <button onclick="switchAdminTab('dashboard')" data-admintab="dashboard" class="admin-tab w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2.5">📊 Dashboard</button>
           <button onclick="switchAdminTab('students')" data-admintab="students" class="admin-tab w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2.5">🎓 Students</button>
           <button onclick="switchAdminTab('teachers')" data-admintab="teachers" class="admin-tab w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2.5">👳 Ustaad</button>
+          <button onclick="switchAdminTab('courses')" data-admintab="courses" class="admin-tab w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2.5">📖 Courses</button>
           <button onclick="switchAdminTab('classes')" data-admintab="classes" class="admin-tab w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2.5">📚 Classes</button>
           <button onclick="switchAdminTab('attendance')" data-admintab="attendance" class="admin-tab w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2.5">🗓️ Attendance</button>
           <button onclick="switchAdminTab('tasks')" data-admintab="tasks" class="admin-tab w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2.5">📋 Tasks</button>
@@ -1049,6 +1050,38 @@
                   </tr>
                 </thead>
                 <tbody id="admTeachersTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Courses tab: full course catalog management -->
+          <div id="admintab-courses" class="admin-panel hidden bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-6 border border-gold-500/20">
+            <div class="flex flex-wrap justify-between items-center gap-3 mb-4">
+              <h3 class="font-display font-semibold text-lg">📖 Course Management</h3>
+              <button onclick="openCourseModal()" class="btn-gold px-4 py-2 rounded-lg text-sm font-semibold">+ Add Course</button>
+            </div>
+            <div class="flex flex-wrap gap-3 mb-4">
+              <input id="admCourseSearch" oninput="renderAdminCoursesTable()" type="search" placeholder="🔍 Search courses…" class="flex-1 min-w-[200px] px-4 py-2.5 rounded-lg bg-fog-50 dark:bg-emerald-900/60 border border-gold-500/30 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500">
+              <select id="admCourseFilterActive" onchange="renderAdminCoursesTable()" class="px-4 py-2.5 rounded-lg bg-fog-50 dark:bg-emerald-900/60 border border-gold-500/30 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500">
+                <option value="">All</option>
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+            <div class="bg-fog-50 dark:bg-emerald-900/40 rounded-2xl border border-gold-500/20 overflow-hidden">
+              <table class="w-full text-xs sm:text-sm table-fixed">
+                <thead>
+                  <tr class="text-left border-b border-gold-500/20 opacity-70 text-[10px] sm:text-xs uppercase">
+                    <th class="py-3 px-2 sm:px-3 w-[24%] whitespace-nowrap">Title</th>
+                    <th class="py-3 px-2 sm:px-3 w-[14%] whitespace-nowrap">Category</th>
+                    <th class="py-3 px-2 sm:px-3 w-[12%] whitespace-nowrap">Level</th>
+                    <th class="py-3 px-2 sm:px-3 w-[12%] whitespace-nowrap">Duration</th>
+                    <th class="py-3 px-2 sm:px-3 w-[10%] whitespace-nowrap">Fee</th>
+                    <th class="py-3 px-2 sm:px-3 w-[10%] whitespace-nowrap">Students</th>
+                    <th class="py-3 px-2 sm:px-3 w-[18%] text-right whitespace-nowrap">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="admCoursesTableBody"></tbody>
               </table>
             </div>
           </div>
@@ -1244,7 +1277,81 @@
       </div>
     </div>
 
-    <!-- Assign course/teacher modal -->
+    <!-- Course Add/Edit modal -->
+    <div id="courseModal" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-5 bg-black/50 overflow-y-auto">
+      <div class="bg-fog-50 dark:bg-emerald-950 rounded-2xl p-6 w-full max-w-lg border border-gold-500/20 my-8">
+        <h4 class="font-display text-lg font-semibold mb-4" id="courseModalTitle">Add Course</h4>
+        <div id="courseModalTabs" class="flex gap-2 mb-4 text-sm">
+          <button type="button" onclick="setCourseModalTab('details')" id="courseTabBtn-details" class="course-modal-tab px-3 py-1.5 rounded-full font-semibold btn-gold">Details</button>
+          <button type="button" onclick="setCourseModalTab('teachers')" id="courseTabBtn-teachers" class="course-modal-tab px-3 py-1.5 rounded-full font-semibold border border-gold-500/40">Teachers</button>
+          <button type="button" onclick="setCourseModalTab('students')" id="courseTabBtn-students" class="course-modal-tab px-3 py-1.5 rounded-full font-semibold border border-gold-500/40">Students</button>
+          <button type="button" onclick="setCourseModalTab('materials')" id="courseTabBtn-materials" class="course-modal-tab px-3 py-1.5 rounded-full font-semibold border border-gold-500/40">Materials</button>
+        </div>
+
+        <!-- Details tab -->
+        <form id="courseForm" onsubmit="return saveAdminCourse(event)" class="space-y-3">
+          <input type="hidden" id="admCourseId">
+          <select required id="admCourseTitle" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+            <option value="">— Select Course Title —</option>
+          </select>
+          <input id="admCourseCategory" placeholder="Category (e.g. Quran, Islamic Studies)" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+          <select id="admCourseLevel" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+            <option value="">— Level —</option>
+            <option value="beginner">Beginner</option>
+            <option value="intermediate">Intermediate</option>
+            <option value="advanced">Advanced</option>
+          </select>
+          <div class="grid grid-cols-2 gap-3">
+            <input id="admCourseDuration" placeholder="Duration (e.g. 6 months)" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+            <input id="admCourseFee" type="number" min="0" step="0.01" placeholder="Fee (Rs.)" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+          </div>
+          <textarea id="admCourseDescription" rows="3" placeholder="Course description…" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500"></textarea>
+          <label class="flex items-center gap-2 text-sm">
+            <input type="checkbox" id="admCourseActive" checked class="rounded border-gold-500/40">
+            Active (visible / assignable)
+          </label>
+          <p id="admCourseFormMsg" class="hidden text-sm"></p>
+          <div class="flex gap-3 pt-2">
+            <button type="button" onclick="closeCourseModal()" class="flex-1 py-2.5 rounded-lg font-semibold text-sm border border-gold-500/40">Cancel</button>
+            <button class="flex-1 btn-gold py-2.5 rounded-lg font-semibold text-sm">Save</button>
+          </div>
+        </form>
+
+        <!-- Teachers tab -->
+        <div id="courseTabPanel-teachers" class="hidden space-y-3">
+          <p class="text-xs opacity-60">Is course ke liye teachers assign karein.</p>
+          <div id="admCourseTeachersBox" class="max-h-56 overflow-y-auto space-y-1.5 p-3 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 text-sm"></div>
+          <button type="button" onclick="closeCourseModal()" class="w-full py-2.5 rounded-lg font-semibold text-sm border border-gold-500/40">Close</button>
+        </div>
+
+        <!-- Students tab -->
+        <div id="courseTabPanel-students" class="hidden space-y-3">
+          <p class="text-xs opacity-60">Is course mein enroll students select karein.</p>
+          <input id="admCourseStudentSearch" oninput="renderCourseStudentsBox()" type="search" placeholder="🔍 Search students…" class="w-full px-4 py-2 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 text-sm focus:outline-none focus:ring-2 focus:ring-gold-500">
+          <div id="admCourseStudentsBox" class="max-h-56 overflow-y-auto space-y-1.5 p-3 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 text-sm"></div>
+          <button type="button" onclick="closeCourseModal()" class="w-full py-2.5 rounded-lg font-semibold text-sm border border-gold-500/40">Close</button>
+        </div>
+
+        <!-- Materials tab -->
+        <div id="courseTabPanel-materials" class="hidden space-y-3">
+          <p class="text-xs opacity-60">Videos aur PDFs upload karein — students/teachers ko yahan se milenge.</p>
+          <form onsubmit="return uploadCourseMaterial(event)" class="flex flex-wrap gap-2 items-center">
+            <select id="admMaterialType" class="px-3 py-2 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 text-sm">
+              <option value="video">🎬 Video</option>
+              <option value="pdf">📄 PDF</option>
+              <option value="note">📝 Note</option>
+            </select>
+            <input required id="admMaterialTitle" placeholder="Title" class="flex-1 min-w-[140px] px-3 py-2 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 text-sm">
+            <input required id="admMaterialFile" type="file" class="text-xs">
+            <button class="btn-gold px-4 py-2 rounded-lg text-sm font-semibold">Upload</button>
+          </form>
+          <p id="admMaterialMsg" class="hidden text-sm"></p>
+          <div id="admCourseMaterialsList" class="max-h-48 overflow-y-auto space-y-1.5 text-sm"></div>
+          <button type="button" onclick="closeCourseModal()" class="w-full py-2.5 rounded-lg font-semibold text-sm border border-gold-500/40">Close</button>
+        </div>
+      </div>
+    </div>
+
     <div id="assignModal" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-5 bg-black/50">
       <div class="bg-fog-50 dark:bg-emerald-950 rounded-2xl p-6 w-full max-w-md border border-gold-500/20">
         <h4 class="font-display text-lg font-semibold mb-4">Assign Course &amp; Teacher</h4>
@@ -2254,6 +2361,7 @@ function switchAdminTab(tab){
   if(tab === 'dashboard') loadAdminDashboard();
   if(tab === 'students') loadAdminStudents();
   if(tab === 'teachers') loadAdminTeachers();
+  if(tab === 'courses') loadAdminCourses();
   if(tab === 'approvals') loadAdminApprovals();
   if(tab === 'classes') loadAdminClasses();
   if(tab === 'attendance') loadAdminAttendance();
@@ -2286,9 +2394,9 @@ async function loadAdminDashboard(){
   document.getElementById('admStatStudents').textContent = rows.length;
   document.getElementById('admStatActive').textContent = rows.filter(s => (s.status||'active') === 'active').length;
   document.getElementById('admStatInactive').textContent = rows.filter(s => (s.status||'active') !== 'active').length;
-  document.getElementById('admStatTeachers').textContent = allUsers.filter(u => u.role === 'teacher' && u.approved !== false).length;
+  document.getElementById('admStatTeachers').textContent = allUsers.filter(u => u.role === 'teacher').length;
   document.getElementById('admStatParents').textContent = allUsers.filter(u => u.role === 'parent').length;
-  document.getElementById('admStatPending').textContent = allUsers.filter(u => u.role === 'teacher' && u.approved === false).length;
+  document.getElementById('admStatPending').textContent = allUsers.filter(u => u.role === 'teacher' && !u.email_verified).length;
 
   // Today's attendance
   try{
@@ -2823,6 +2931,323 @@ function renderTeacherCoursesCheckboxes(selected){
 
 function closeTeacherModal(){
   document.getElementById('teacherModal').classList.add('hidden');
+}
+
+// =====================================================================
+// COURSE MANAGEMENT
+// =====================================================================
+let adminCoursesCache = [];
+let adminTeachersForAssignCache = [];
+let adminStudentsForAssignCache = [];
+let currentCourseId = null;
+let currentCourseTeacherIds = [];
+let currentCourseStudentIds = [];
+
+async function loadAdminCourses(){
+  const tbody = document.getElementById('admCoursesTableBody');
+  tbody.innerHTML = '<tr><td colspan="7" class="py-6 text-center opacity-60 text-sm">Loading…</td></tr>';
+
+  const { data: courses, error } = await supabaseClient.from('courses').select('*').order('created_at', { ascending: false });
+  if(error){ tbody.innerHTML = `<tr><td colspan="7" class="py-6 text-center text-red-500 text-sm">Could not load courses: ${error.message}</td></tr>`; return; }
+  adminCoursesCache = courses || [];
+
+  // student counts per course
+  const { data: enrolments } = await supabaseClient.from('course_students').select('course_id');
+  const countByCourse = {};
+  (enrolments || []).forEach(e => { countByCourse[e.course_id] = (countByCourse[e.course_id] || 0) + 1; });
+  adminCoursesCache.forEach(c => c.__studentCount = countByCourse[c.id] || 0);
+
+  renderAdminCoursesTable();
+}
+
+function renderAdminCoursesTable(){
+  const tbody = document.getElementById('admCoursesTableBody');
+  const q = (document.getElementById('admCourseSearch').value || '').toLowerCase().trim();
+  const activeFilter = document.getElementById('admCourseFilterActive').value;
+
+  let rows = adminCoursesCache.filter(c => {
+    const matchesQ = !q || (c.title||'').toLowerCase().includes(q) || (c.category||'').toLowerCase().includes(q);
+    const matchesActive = !activeFilter || (activeFilter === 'active' ? c.is_active : !c.is_active);
+    return matchesQ && matchesActive;
+  });
+
+  if(rows.length === 0){ tbody.innerHTML = '<tr><td colspan="7" class="py-6 text-center opacity-60 text-sm">No courses found. Click "+ Add Course" to create one.</td></tr>'; return; }
+
+  tbody.innerHTML = rows.map(c => {
+    const dotColor = c.is_active ? 'bg-emerald-500' : 'bg-red-500';
+    return `<tr class="border-b border-gold-500/10 last:border-0">
+      <td class="py-2.5 px-2 sm:px-3 font-medium truncate">
+        <span class="inline-block w-2 h-2 rounded-full ${dotColor} mr-1.5" title="${c.is_active ? 'Active' : 'Inactive'}"></span>${c.title || '—'}
+      </td>
+      <td class="py-2.5 px-2 sm:px-3 opacity-80 truncate">${c.category || '—'}</td>
+      <td class="py-2.5 px-2 sm:px-3 opacity-80 truncate capitalize">${c.level || '—'}</td>
+      <td class="py-2.5 px-2 sm:px-3 opacity-80 truncate">${c.duration || '—'}</td>
+      <td class="py-2.5 px-2 sm:px-3 opacity-80 truncate">${c.fee ? fmtPKR(c.fee) : '—'}</td>
+      <td class="py-2.5 px-2 sm:px-3 opacity-80">${c.__studentCount || 0}</td>
+      <td class="py-2.5 px-2 sm:px-3 text-right relative">
+        <button type="button" onclick="toggleCourseActionsMenu(event, '${c.id}')" title="Actions" class="hover:text-gold-500 px-2 py-1 rounded-md hover:bg-gold-500/10">⋮</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+let courseActionsMenuEl = null;
+function closeCourseActionsMenu(){
+  if(courseActionsMenuEl){ courseActionsMenuEl.remove(); courseActionsMenuEl = null; }
+  document.removeEventListener('click', closeCourseActionsMenu);
+  window.removeEventListener('resize', closeCourseActionsMenu);
+}
+function toggleCourseActionsMenu(evt, id){
+  evt.stopPropagation();
+  if(courseActionsMenuEl){ closeCourseActionsMenu(); return; }
+  const btn = evt.currentTarget;
+  const rect = btn.getBoundingClientRect();
+  const menuHeight = 172;
+  const spaceBelow = window.innerHeight - rect.bottom;
+  const openUpward = spaceBelow < menuHeight && rect.top > menuHeight;
+
+  const menu = document.createElement('div');
+  menu.className = 'fixed z-[80] w-44 rounded-lg shadow-xl border border-gold-500/20 bg-fog-50 dark:bg-emerald-950 py-1 text-sm';
+  menu.style.left = Math.min(rect.right - 176, window.innerWidth - 184) + 'px';
+  menu.style.top = openUpward ? (rect.top - menuHeight + 8) + 'px' : (rect.bottom + 4) + 'px';
+  menu.innerHTML = `
+    <button onclick="closeCourseActionsMenu(); openCourseModal('${id}')" class="w-full text-left px-4 py-2 hover:bg-gold-500/10 flex items-center gap-2">✏️ Edit Details</button>
+    <button onclick="closeCourseActionsMenu(); openCourseModal('${id}','teachers')" class="w-full text-left px-4 py-2 hover:bg-gold-500/10 flex items-center gap-2">👳 Assign Teachers</button>
+    <button onclick="closeCourseActionsMenu(); openCourseModal('${id}','students')" class="w-full text-left px-4 py-2 hover:bg-gold-500/10 flex items-center gap-2">🎓 Assign Students</button>
+    <button onclick="closeCourseActionsMenu(); openCourseModal('${id}','materials')" class="w-full text-left px-4 py-2 hover:bg-gold-500/10 flex items-center gap-2">📎 Materials</button>
+    <button onclick="closeCourseActionsMenu(); deleteAdminCourse('${id}')" class="w-full text-left px-4 py-2 hover:bg-red-500/10 text-red-500 flex items-center gap-2">🗑️ Delete</button>
+  `;
+  document.body.appendChild(menu);
+  courseActionsMenuEl = menu;
+  setTimeout(() => { document.addEventListener('click', closeCourseActionsMenu); window.addEventListener('resize', closeCourseActionsMenu); }, 0);
+}
+
+async function deleteAdminCourse(id){
+  if(!confirm('Delete this course? This will remove teacher/student assignments and materials too.')) return;
+  const { error } = await supabaseClient.from('courses').delete().eq('id', id);
+  if(error){ alert('Could not delete: ' + error.message); return; }
+  loadAdminCourses();
+}
+
+function setCourseModalTab(tab){
+  ['details','teachers','students','materials'].forEach(t => {
+    document.getElementById('courseTabBtn-' + t).className = 'course-modal-tab px-3 py-1.5 rounded-full font-semibold ' + (t===tab ? 'btn-gold' : 'border border-gold-500/40');
+  });
+  document.getElementById('courseForm').classList.toggle('hidden', tab !== 'details');
+  ['teachers','students','materials'].forEach(t => {
+    document.getElementById('courseTabPanel-' + t).classList.toggle('hidden', t !== tab);
+  });
+  if(tab === 'teachers') renderCourseTeachersBox();
+  if(tab === 'students') renderCourseStudentsBox();
+  if(tab === 'materials') loadCourseMaterials();
+}
+
+async function openCourseModal(id, tab){
+  currentCourseId = id || null;
+  document.getElementById('courseModalTitle').textContent = id ? 'Edit Course' : 'Add Course';
+  document.getElementById('courseForm').reset();
+  document.getElementById('admCourseId').value = id || '';
+
+  // populate title dropdown from the shared COURSE_OPTIONS list
+  const titleSel = document.getElementById('admCourseTitle');
+  titleSel.innerHTML = '<option value="">— Select Course Title —</option>' + COURSE_OPTIONS.map(c => `<option value="${c}">${c}</option>`).join('');
+
+  if(id){
+    const c = adminCoursesCache.find(x => x.id === id);
+    if(c){
+      titleSel.value = c.title || '';
+      document.getElementById('admCourseCategory').value = c.category || '';
+      document.getElementById('admCourseLevel').value = c.level || '';
+      document.getElementById('admCourseDuration').value = c.duration || '';
+      document.getElementById('admCourseFee').value = c.fee || '';
+      document.getElementById('admCourseDescription').value = c.description || '';
+      document.getElementById('admCourseActive').checked = c.is_active !== false;
+    }
+    const { data: ct } = await supabaseClient.from('course_teachers').select('teacher_id').eq('course_id', id);
+    currentCourseTeacherIds = (ct || []).map(x => x.teacher_id);
+    const { data: cs } = await supabaseClient.from('course_students').select('student_id').eq('course_id', id);
+    currentCourseStudentIds = (cs || []).map(x => x.student_id);
+  } else {
+    currentCourseTeacherIds = [];
+    currentCourseStudentIds = [];
+  }
+
+  document.getElementById('courseModal').classList.remove('hidden');
+  setCourseModalTab(tab || 'details');
+}
+
+function closeCourseModal(){
+  document.getElementById('courseModal').classList.add('hidden');
+  currentCourseId = null;
+}
+
+async function saveAdminCourse(e){
+  e.preventDefault();
+  const msg = document.getElementById('admCourseFormMsg');
+  msg.classList.add('hidden');
+  const id = document.getElementById('admCourseId').value;
+  const payload = {
+    title: document.getElementById('admCourseTitle').value,
+    category: document.getElementById('admCourseCategory').value.trim() || null,
+    level: document.getElementById('admCourseLevel').value || null,
+    duration: document.getElementById('admCourseDuration').value.trim() || null,
+    fee: document.getElementById('admCourseFee').value ? Number(document.getElementById('admCourseFee').value) : 0,
+    description: document.getElementById('admCourseDescription').value.trim() || null,
+    is_active: document.getElementById('admCourseActive').checked
+  };
+  if(!payload.title){
+    msg.textContent = '❌ Please select a course title.';
+    msg.className = 'text-sm text-red-500'; msg.classList.remove('hidden');
+    return false;
+  }
+
+  let error;
+  if(id){
+    ({ error } = await supabaseClient.from('courses').update(payload).eq('id', id));
+  } else {
+    const { data: { user } } = await supabaseClient.auth.getUser();
+    ({ error } = await supabaseClient.from('courses').insert({ ...payload, created_by: user?.id }));
+  }
+
+  if(error){
+    msg.textContent = '❌ Could not save: ' + error.message;
+    msg.className = 'text-sm text-red-500'; msg.classList.remove('hidden');
+    return false;
+  }
+
+  closeCourseModal();
+  loadAdminCourses();
+  return false;
+}
+
+async function renderCourseTeachersBox(){
+  const box = document.getElementById('admCourseTeachersBox');
+  box.innerHTML = 'Loading…';
+  const { data: teachers, error } = await supabaseClient.from('users').select('id,name,email').eq('role','teacher').order('name');
+  if(error){ box.innerHTML = `<p class="text-red-500 text-sm">${error.message}</p>`; return; }
+  adminTeachersForAssignCache = teachers || [];
+  if(!currentCourseId){ box.innerHTML = '<p class="opacity-60 text-sm">Save the course first, then assign teachers.</p>'; return; }
+  box.innerHTML = adminTeachersForAssignCache.map(t => `
+    <label class="flex items-center gap-2 py-1 cursor-pointer">
+      <input type="checkbox" value="${t.id}" ${currentCourseTeacherIds.includes(t.id) ? 'checked' : ''} onchange="toggleCourseTeacher('${t.id}', this.checked)" class="rounded border-gold-500/40 text-gold-500 focus:ring-gold-500">
+      <span>${t.name || t.email}</span>
+    </label>`).join('') || '<p class="opacity-60 text-sm">No teachers found.</p>';
+}
+
+async function toggleCourseTeacher(teacherId, checked){
+  if(!currentCourseId) return;
+  if(checked){
+    const { error } = await supabaseClient.from('course_teachers').insert({ course_id: currentCourseId, teacher_id: teacherId });
+    if(error && !error.message.includes('duplicate')) alert('Could not assign: ' + error.message);
+    else currentCourseTeacherIds.push(teacherId);
+  } else {
+    const { error } = await supabaseClient.from('course_teachers').delete().eq('course_id', currentCourseId).eq('teacher_id', teacherId);
+    if(error) alert('Could not remove: ' + error.message);
+    else currentCourseTeacherIds = currentCourseTeacherIds.filter(id => id !== teacherId);
+  }
+  loadAdminCourses();
+}
+
+async function renderCourseStudentsBox(){
+  const box = document.getElementById('admCourseStudentsBox');
+  box.innerHTML = 'Loading…';
+  if(!currentCourseId){ box.innerHTML = '<p class="opacity-60 text-sm">Save the course first, then enroll students.</p>'; return; }
+  if(!adminStudentsForAssignCache.length){
+    const { data: students, error } = await supabaseClient.from('students').select('id,name,class').order('name');
+    if(error){ box.innerHTML = `<p class="text-red-500 text-sm">${error.message}</p>`; return; }
+    adminStudentsForAssignCache = students || [];
+  }
+  const q = (document.getElementById('admCourseStudentSearch').value || '').toLowerCase().trim();
+  const list = adminStudentsForAssignCache.filter(s => !q || (s.name||'').toLowerCase().includes(q));
+  box.innerHTML = list.map(s => `
+    <label class="flex items-center gap-2 py-1 cursor-pointer">
+      <input type="checkbox" value="${s.id}" ${currentCourseStudentIds.includes(s.id) ? 'checked' : ''} onchange="toggleCourseStudent('${s.id}', this.checked)" class="rounded border-gold-500/40 text-gold-500 focus:ring-gold-500">
+      <span>${s.name || '—'}${s.class ? ' <span class=\"opacity-50 text-xs\">(' + s.class + ')</span>' : ''}</span>
+    </label>`).join('') || '<p class="opacity-60 text-sm">No students found.</p>';
+}
+
+async function toggleCourseStudent(studentId, checked){
+  if(!currentCourseId) return;
+  if(checked){
+    const { error } = await supabaseClient.from('course_students').insert({ course_id: currentCourseId, student_id: studentId });
+    if(error && !error.message.includes('duplicate')) alert('Could not enroll: ' + error.message);
+    else currentCourseStudentIds.push(studentId);
+  } else {
+    const { error } = await supabaseClient.from('course_students').delete().eq('course_id', currentCourseId).eq('student_id', studentId);
+    if(error) alert('Could not remove: ' + error.message);
+    else currentCourseStudentIds = currentCourseStudentIds.filter(id => id !== studentId);
+  }
+  loadAdminCourses();
+}
+
+async function loadCourseMaterials(){
+  const box = document.getElementById('admCourseMaterialsList');
+  if(!currentCourseId){ box.innerHTML = '<p class="opacity-60 text-sm">Save the course first, then upload materials.</p>'; return; }
+  box.innerHTML = 'Loading…';
+  const { data, error } = await supabaseClient.from('course_materials').select('*').eq('course_id', currentCourseId).order('created_at',{ascending:false});
+  if(error){ box.innerHTML = `<p class="text-red-500 text-sm">${error.message}</p>`; return; }
+  if(!data || data.length === 0){ box.innerHTML = '<p class="opacity-60 text-sm">No materials uploaded yet.</p>'; return; }
+  const icon = { video: '🎬', pdf: '📄', note: '📝' };
+  box.innerHTML = data.map(m => `
+    <div class="flex items-center justify-between border-b border-gold-500/10 last:border-0 pb-1.5">
+      <a href="${m.file_url}" target="_blank" class="hover:underline">${icon[m.type]||'📎'} ${m.title}</a>
+      <button onclick="deleteCourseMaterial('${m.id}')" class="text-red-500 hover:opacity-70 text-xs">🗑️</button>
+    </div>`).join('');
+}
+
+async function uploadCourseMaterial(e){
+  e.preventDefault();
+  const msg = document.getElementById('admMaterialMsg');
+  msg.classList.add('hidden');
+  if(!currentCourseId){
+    msg.textContent = '❌ Save the course first.';
+    msg.className = 'text-sm text-red-500'; msg.classList.remove('hidden');
+    return false;
+  }
+  const type = document.getElementById('admMaterialType').value;
+  const title = document.getElementById('admMaterialTitle').value.trim();
+  const fileInput = document.getElementById('admMaterialFile');
+  const file = fileInput.files[0];
+  if(!file){
+    msg.textContent = '❌ Please choose a file.';
+    msg.className = 'text-sm text-red-500'; msg.classList.remove('hidden');
+    return false;
+  }
+
+  msg.textContent = 'Uploading…';
+  msg.className = 'text-sm opacity-70'; msg.classList.remove('hidden');
+
+  const path = `${currentCourseId}/${Date.now()}_${file.name}`;
+  const { error: upErr } = await supabaseClient.storage.from('course-materials').upload(path, file);
+  if(upErr){
+    msg.textContent = '❌ Upload failed: ' + upErr.message;
+    msg.className = 'text-sm text-red-500';
+    return false;
+  }
+  const { data: pub } = supabaseClient.storage.from('course-materials').getPublicUrl(path);
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  const { error: insErr } = await supabaseClient.from('course_materials').insert({
+    course_id: currentCourseId, type, title, file_url: pub.publicUrl, uploaded_by: user?.id
+  });
+  if(insErr){
+    msg.textContent = '❌ Saved file but could not record it: ' + insErr.message;
+    msg.className = 'text-sm text-red-500';
+    return false;
+  }
+
+  msg.textContent = '✅ Uploaded!';
+  msg.className = 'text-sm text-emerald-600';
+  document.getElementById('admMaterialTitle').value = '';
+  fileInput.value = '';
+  loadCourseMaterials();
+  return false;
+}
+
+async function deleteCourseMaterial(id){
+  if(!confirm('Delete this material?')) return;
+  const { error } = await supabaseClient.from('course_materials').delete().eq('id', id);
+  if(error){ alert('Could not delete: ' + error.message); return; }
+  loadCourseMaterials();
 }
 
 function splitCsv(val){
