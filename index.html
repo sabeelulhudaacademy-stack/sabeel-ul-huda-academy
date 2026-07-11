@@ -814,6 +814,12 @@
       <div id="studentLiveClassList" class="space-y-3 text-sm">Loading…</div>
     </div>
 
+    <!-- ---------- STUDENT FEES & PAYMENTS ---------- -->
+    <div id="portal-student-fees" class="hidden reveal mt-6 bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-6 border border-gold-500/20">
+      <h4 class="font-display font-semibold text-lg mb-4">💳 Fees & Payments</h4>
+      <div id="studentInvoiceList" class="space-y-3 text-sm">Loading…</div>
+    </div>
+
     <!-- ---------- PARENT DASHBOARD ---------- -->
     <div id="portal-parent" class="hidden reveal space-y-6">
       <div id="parentChildTabs" class="flex flex-wrap gap-2"></div>
@@ -845,6 +851,11 @@
       <div id="parentLiveClassesBox" class="hidden bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-6 border border-gold-500/20">
         <h4 class="font-display font-semibold text-lg mb-4">🎥 Live Classes</h4>
         <div id="parentLiveClassList" class="space-y-3 text-sm">Loading…</div>
+      </div>
+
+      <div id="parentFeesBox" class="hidden bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-6 border border-gold-500/20">
+        <h4 class="font-display font-semibold text-lg mb-4">💳 Fees & Payments</h4>
+        <div id="parentInvoiceList" class="space-y-3 text-sm">Loading…</div>
       </div>
     </div>
 
@@ -919,6 +930,7 @@
           <button onclick="switchAdminTab('attendance')" data-admintab="attendance" class="admin-tab w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2.5">🗓️ Attendance</button>
           <button onclick="switchAdminTab('tasks')" data-admintab="tasks" class="admin-tab w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2.5">📋 Tasks</button>
           <button onclick="switchAdminTab('liveclasses')" data-admintab="liveclasses" class="admin-tab w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2.5">🎥 Live Classes</button>
+          <button onclick="switchAdminTab('fees')" data-admintab="fees" class="admin-tab w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2.5">💳 Fees</button>
           <button onclick="switchAdminTab('reports')" data-admintab="reports" class="admin-tab w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2.5">📈 Reports</button>
           <button onclick="switchAdminTab('approvals')" data-admintab="approvals" class="admin-tab w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2.5">✅ User Approvals</button>
           <button onclick="switchAdminTab('settings')" data-admintab="settings" class="admin-tab w-full text-left px-4 py-2.5 rounded-lg text-sm font-medium flex items-center gap-2.5">⚙️ Settings</button>
@@ -1184,6 +1196,31 @@
             </div>
           </div>
 
+          <!-- Fees tab -->
+          <div id="admintab-fees" class="admin-panel hidden space-y-6">
+            <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-6 border border-gold-500/20">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="font-display font-semibold text-lg">🧾 Invoices</h3>
+                <button onclick="openInvoiceModal()" class="btn-gold px-4 py-2 rounded-lg text-sm font-semibold">+ Create Invoice</button>
+              </div>
+              <p class="text-xs opacity-60 mb-5">Ek student ya poori class ke liye monthly fee invoice banayein.</p>
+              <div class="overflow-x-auto">
+                <table class="w-full text-sm">
+                  <thead><tr class="text-left border-b border-gold-500/20 opacity-70">
+                    <th class="py-2 px-4">Student</th><th class="py-2 px-4">Month</th><th class="py-2 px-4">Amount</th><th class="py-2 px-4">Due</th><th class="py-2 px-4">Status</th><th class="py-2 px-4 text-right">Actions</th>
+                  </tr></thead>
+                  <tbody id="admInvoicesTableBody"><tr><td colspan="6" class="py-6 text-center opacity-60 text-sm">Loading…</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+
+            <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-6 border border-gold-500/20">
+              <h3 class="font-display font-semibold text-lg mb-1">🔍 Payment Proofs — Pending Review</h3>
+              <p class="text-xs opacity-60 mb-5">Students ne jo EasyPaisa screenshot/reference number submit kiya hai, usay verify ya reject karein.</p>
+              <div id="admPendingProofsList" class="space-y-3 text-sm">Loading…</div>
+            </div>
+          </div>
+
           <!-- Reports tab -->
           <div id="admintab-reports" class="admin-panel hidden">
             <h3 class="font-display font-semibold text-lg mb-4">📈 Reports</h3>
@@ -1227,6 +1264,16 @@
                 <input id="setAcademyPhone" placeholder="Phone Number" class="w-full px-4 py-2.5 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
                 <input id="setAcademyEmail" type="email" placeholder="Contact Email" class="w-full px-4 py-2.5 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
                 <button class="btn-gold px-5 py-2.5 rounded-lg font-semibold text-sm">Save Academy Info</button>
+              </form>
+            </div>
+
+            <div class="bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-6 border border-gold-500/20">
+              <h3 class="font-display text-lg font-semibold mb-1">💳 EasyPaisa Account (for Fee Payments)</h3>
+              <p class="text-xs opacity-60 mb-5">Ye number/naam students ko Fee payment ke waqt dikhaya jayega.</p>
+              <form onsubmit="return saveAcademySettings(event)" class="space-y-3 max-w-lg">
+                <input id="setEasypaisaNumber" placeholder="EasyPaisa Account Number" class="w-full px-4 py-2.5 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+                <input id="setEasypaisaName" placeholder="Account Holder Name" class="w-full px-4 py-2.5 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+                <button class="btn-gold px-5 py-2.5 rounded-lg font-semibold text-sm">Save EasyPaisa Info</button>
               </form>
             </div>
 
@@ -1487,6 +1534,65 @@
           <div class="flex gap-3 pt-2">
             <button type="button" onclick="closeLiveClassModal()" class="flex-1 py-2.5 rounded-lg font-semibold text-sm border border-gold-500/40">Cancel</button>
             <button class="flex-1 btn-gold py-2.5 rounded-lg font-semibold text-sm">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Create Invoice modal -->
+    <div id="invoiceModal" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-5 bg-black/50">
+      <div class="bg-fog-50 dark:bg-emerald-950 rounded-2xl p-6 w-full max-w-md border border-gold-500/20">
+        <h4 class="font-display text-lg font-semibold mb-4">Create Invoice</h4>
+        <form onsubmit="return saveInvoice(event)" class="space-y-3">
+          <select id="invAssignType" onchange="toggleInvoiceAssignType()" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+            <option value="student">One Student</option>
+            <option value="class">Whole Class</option>
+          </select>
+          <select id="invStudent" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+            <option value="">— Select Student —</option>
+          </select>
+          <select id="invClass" class="hidden w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+            <option value="">— Select Class —</option>
+          </select>
+          <div>
+            <label class="text-xs font-semibold opacity-70">Month</label>
+            <input required id="invMonth" type="month" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 mt-1">
+          </div>
+          <div>
+            <label class="text-xs font-semibold opacity-70">Amount (Rs.)</label>
+            <input required id="invAmount" type="number" min="0" step="1" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 mt-1">
+          </div>
+          <div>
+            <label class="text-xs font-semibold opacity-70">Due Date (optional)</label>
+            <input id="invDueDate" type="date" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 mt-1">
+          </div>
+          <div class="flex gap-3 pt-2">
+            <button type="button" onclick="closeInvoiceModal()" class="flex-1 py-2.5 rounded-lg font-semibold text-sm border border-gold-500/40">Cancel</button>
+            <button class="flex-1 btn-gold py-2.5 rounded-lg font-semibold text-sm">Create</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Submit Payment Proof modal (student) -->
+    <div id="paymentProofModal" class="hidden fixed inset-0 z-[70] flex items-center justify-center p-5 bg-black/50">
+      <div class="bg-fog-50 dark:bg-emerald-950 rounded-2xl p-6 w-full max-w-md border border-gold-500/20">
+        <h4 class="font-display text-lg font-semibold mb-2">Submit Payment</h4>
+        <div id="paymentProofInstructions" class="text-sm bg-gold-500/10 border border-gold-500/30 rounded-lg p-3 mb-4"></div>
+        <form onsubmit="return submitPaymentProof(event)" class="space-y-3">
+          <input type="hidden" id="ppInvoiceId">
+          <div>
+            <label class="text-xs font-semibold opacity-70">EasyPaisa Transaction / Reference Number</label>
+            <input required id="ppReferenceNo" placeholder="e.g. 123456789" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 mt-1">
+          </div>
+          <div>
+            <label class="text-xs font-semibold opacity-70">Payment Screenshot</label>
+            <input required type="file" id="ppFile" accept="image/*,.pdf" class="w-full px-4 py-2.5 rounded-lg bg-fog-100 dark:bg-emerald-900/60 border border-gold-500/30 mt-1 text-sm">
+            <p id="ppFileStatus" class="text-xs opacity-60 mt-1"></p>
+          </div>
+          <div class="flex gap-3 pt-2">
+            <button type="button" onclick="closePaymentProofModal()" class="flex-1 py-2.5 rounded-lg font-semibold text-sm border border-gold-500/40">Cancel</button>
+            <button class="flex-1 btn-gold py-2.5 rounded-lg font-semibold text-sm">Submit for Review</button>
           </div>
         </form>
       </div>
@@ -3961,6 +4067,298 @@ async function loadParentLiveClasses(studentId){
   }).join('');
 }
 
+/* ================= FEES & PAYMENTS (EasyPaisa manual transfer) ================= */
+
+function toggleInvoiceAssignType(){
+  const type = document.getElementById('invAssignType').value;
+  document.getElementById('invStudent').classList.toggle('hidden', type !== 'student');
+  document.getElementById('invClass').classList.toggle('hidden', type !== 'class');
+}
+
+async function openInvoiceModal(){
+  document.getElementById('invAssignType').value = 'student';
+  document.getElementById('invMonth').value = '';
+  document.getElementById('invAmount').value = '';
+  document.getElementById('invDueDate').value = '';
+
+  if(adminClassesStudentsCache.length===0){
+    const { data: students } = await supabaseClient.from('students').select('*').order('name');
+    adminClassesStudentsCache = students || [];
+  }
+  document.getElementById('invStudent').innerHTML = '<option value="">— Select Student —</option>' + adminClassesStudentsCache.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+  const classes = [...new Set(adminClassesStudentsCache.map(s => s.class).filter(Boolean))];
+  document.getElementById('invClass').innerHTML = '<option value="">— Select Class —</option>' + classes.map(c => `<option value="${c}">${c}</option>`).join('');
+
+  toggleInvoiceAssignType();
+  document.getElementById('invoiceModal').classList.remove('hidden');
+}
+
+function closeInvoiceModal(){
+  document.getElementById('invoiceModal').classList.add('hidden');
+}
+
+async function saveInvoice(e){
+  e.preventDefault();
+  const type = document.getElementById('invAssignType').value;
+  const monthVal = document.getElementById('invMonth').value; // "2026-07"
+  const month = monthVal ? monthVal + '-01' : null;
+  const amount = Number(document.getElementById('invAmount').value) || 0;
+  const dueDate = document.getElementById('invDueDate').value || null;
+
+  let studentIds = [];
+  if(type === 'student'){
+    const id = document.getElementById('invStudent').value;
+    if(!id){ alert('Please select a student.'); return false; }
+    studentIds = [id];
+  } else {
+    const cls = document.getElementById('invClass').value;
+    if(!cls){ alert('Please select a class.'); return false; }
+    studentIds = adminClassesStudentsCache.filter(s => s.class === cls).map(s => s.id);
+    if(studentIds.length===0){ alert('No students found in this class.'); return false; }
+  }
+
+  const payload = studentIds.map(sid => ({
+    student_id: sid,
+    month,
+    amount,
+    due_date: dueDate,
+    status: 'unpaid'
+  }));
+
+  const { error } = await supabaseClient.from('fee_invoices').insert(payload);
+  if(error){ alert('Could not create invoice(s): ' + error.message); return false; }
+  closeInvoiceModal();
+  loadAdminInvoices();
+  showToast(`${studentIds.length} invoice(s) created.`);
+  return false;
+}
+
+let adminInvoicesCache = [];
+
+async function loadAdminInvoices(){
+  if(adminClassesStudentsCache.length===0){
+    const { data: students } = await supabaseClient.from('students').select('*').order('name');
+    adminClassesStudentsCache = students || [];
+  }
+  const tbody = document.getElementById('admInvoicesTableBody');
+  tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center opacity-60 text-sm">Loading…</td></tr>';
+  const { data: rows, error } = await supabaseClient.from('fee_invoices').select('*').order('month', { ascending: false });
+  if(error){ tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-red-500 text-sm">Could not load invoices.</td></tr>'; return; }
+  adminInvoicesCache = rows || [];
+  if(adminInvoicesCache.length===0){ tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center opacity-60 text-sm">No invoices yet — click "Create Invoice" to add one.</td></tr>'; return; }
+  tbody.innerHTML = adminInvoicesCache.map(inv => {
+    const studentName = (adminClassesStudentsCache.find(s => s.id === inv.student_id) || {}).name || 'Unknown';
+    const monthLabel = inv.month ? new Date(inv.month + 'T00:00:00').toLocaleDateString('en-PK', { month: 'short', year: 'numeric' }) : '—';
+    const statusBadge = inv.status === 'paid'
+      ? '<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">Paid</span>'
+      : '<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-red-500/15 text-red-600 dark:text-red-400">Unpaid</span>';
+    return `<tr class="border-b border-gold-500/10 last:border-0">
+      <td class="py-3 px-4 font-medium">${studentName}</td>
+      <td class="py-3 px-4 opacity-80">${monthLabel}</td>
+      <td class="py-3 px-4 opacity-80">${fmtPKR(inv.amount)}</td>
+      <td class="py-3 px-4 opacity-80">${inv.due_date || '—'}</td>
+      <td class="py-3 px-4">${statusBadge}</td>
+      <td class="py-3 px-4 text-right space-x-2 whitespace-nowrap">
+        ${inv.status !== 'paid' ? `<button onclick="markInvoicePaidManually('${inv.id}')" title="Mark as paid manually (cash/bank etc)" class="hover:text-gold-500">✅</button>` : ''}
+        <button onclick="deleteInvoice('${inv.id}')" title="Delete" class="hover:text-red-500">🗑️</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function markInvoicePaidManually(invoiceId){
+  if(!confirm('Mark this invoice as paid manually? Use this only if payment was received outside the app (e.g. cash).')) return;
+  const { error } = await supabaseClient.from('fee_invoices').update({ status: 'paid' }).eq('id', invoiceId);
+  if(error){ alert('Could not update: ' + error.message); return; }
+  loadAdminInvoices();
+}
+
+async function deleteInvoice(invoiceId){
+  if(!confirm('Delete this invoice? This cannot be undone.')) return;
+  const { error } = await supabaseClient.from('fee_invoices').delete().eq('id', invoiceId);
+  if(error){ alert('Could not delete: ' + error.message); return; }
+  loadAdminInvoices();
+}
+
+async function loadAdminPendingProofs(){
+  if(adminClassesStudentsCache.length===0){
+    const { data: students } = await supabaseClient.from('students').select('*').order('name');
+    adminClassesStudentsCache = students || [];
+  }
+  const box = document.getElementById('admPendingProofsList');
+  box.innerHTML = 'Loading…';
+  const { data: rows, error } = await supabaseClient.from('fee_payments').select('*').eq('status', 'pending').order('paid_at', { ascending: false });
+  if(error){ box.innerHTML = '<p class="opacity-60">Could not load payment proofs.</p>'; return; }
+  if(!rows || rows.length===0){ box.innerHTML = '<p class="opacity-60">No pending proofs to review.</p>'; return; }
+  box.innerHTML = rows.map(p => {
+    const studentName = (adminClassesStudentsCache.find(s => s.id === p.student_id) || {}).name || 'Unknown';
+    const invoice = adminInvoicesCache.find(i => i.id === p.invoice_id);
+    const monthLabel = invoice && invoice.month ? new Date(invoice.month + 'T00:00:00').toLocaleDateString('en-PK', { month: 'short', year: 'numeric' }) : '—';
+    return `<div class="p-4 rounded-xl bg-fog-50 dark:bg-emerald-950 border border-gold-500/10 flex flex-wrap justify-between items-center gap-3">
+      <div>
+        <p class="font-semibold">${studentName} — ${fmtPKR(p.amount)} <span class="opacity-60 font-normal text-xs">(${monthLabel})</span></p>
+        <p class="text-xs opacity-60">Ref#: ${p.reference_no || '—'} · Submitted ${p.paid_at ? new Date(p.paid_at).toLocaleString() : ''}</p>
+        ${p.receipt_url ? `<a href="${p.receipt_url}" target="_blank" class="text-xs text-gold-600 dark:text-gold-400 underline">View screenshot 🔗</a>` : ''}
+      </div>
+      <div class="flex gap-2">
+        <button onclick="verifyPayment('${p.id}','${p.invoice_id || ''}')" class="btn-gold px-3 py-1.5 rounded-lg text-xs font-semibold">✅ Verify</button>
+        <button onclick="rejectPayment('${p.id}')" class="px-3 py-1.5 rounded-lg text-xs font-semibold border border-red-500/40 text-red-600 dark:text-red-400">✕ Reject</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function verifyPayment(paymentId, invoiceId){
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  const { error } = await supabaseClient.from('fee_payments').update({
+    status: 'verified', verified_by: user.id, verified_at: new Date().toISOString()
+  }).eq('id', paymentId);
+  if(error){ alert('Could not verify: ' + error.message); return; }
+  if(invoiceId){
+    await supabaseClient.from('fee_invoices').update({ status: 'paid' }).eq('id', invoiceId);
+  }
+  showToast('Payment verified ✓');
+  loadAdminPendingProofs();
+  loadAdminInvoices();
+}
+
+async function rejectPayment(paymentId){
+  const note = prompt('Reason for rejecting this proof (optional):') || null;
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  const { error } = await supabaseClient.from('fee_payments').update({
+    status: 'rejected', verified_by: user.id, verified_at: new Date().toISOString(), admin_note: note
+  }).eq('id', paymentId);
+  if(error){ alert('Could not reject: ' + error.message); return; }
+  loadAdminPendingProofs();
+}
+
+/* ---- Student side ---- */
+
+let studentInvoicesCache = [];
+let easypaisaSettingsCache = null;
+
+async function loadStudentInvoices(studentId){
+  const box = document.getElementById('studentInvoiceList');
+  box.innerHTML = 'Loading…';
+  const [{ data: invoices, error }, { data: payments }] = await Promise.all([
+    supabaseClient.from('fee_invoices').select('*').eq('student_id', studentId).order('month', { ascending: false }),
+    supabaseClient.from('fee_payments').select('*').eq('student_id', studentId)
+  ]);
+  if(error){ box.innerHTML = '<p class="opacity-60">Could not load invoices.</p>'; return; }
+  studentInvoicesCache = invoices || [];
+  if(studentInvoicesCache.length===0){ box.innerHTML = '<p class="opacity-60">No fee invoices yet.</p>'; return; }
+  box.innerHTML = studentInvoicesCache.map(inv => {
+    const monthLabel = inv.month ? new Date(inv.month + 'T00:00:00').toLocaleDateString('en-PK', { month: 'long', year: 'numeric' }) : '—';
+    const pendingProof = (payments || []).find(p => p.invoice_id === inv.id && p.status === 'pending');
+    const rejectedProof = (payments || []).find(p => p.invoice_id === inv.id && p.status === 'rejected');
+    let actionHtml = '';
+    let statusBadge = '<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-red-500/15 text-red-600 dark:text-red-400">Unpaid</span>';
+    if(inv.status === 'paid'){
+      statusBadge = '<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">Paid ✓</span>';
+    } else if(pendingProof){
+      statusBadge = '<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-gold-500/15 text-gold-700 dark:text-gold-400">Under Review</span>';
+    } else {
+      actionHtml = `<button onclick="openPaymentProofModal('${inv.id}')" class="btn-gold px-3 py-1.5 rounded-lg text-xs font-semibold">Pay via EasyPaisa</button>`;
+    }
+    return `<div class="p-4 rounded-xl bg-fog-50 dark:bg-emerald-950 border border-gold-500/10 flex flex-wrap justify-between items-center gap-2">
+      <div>
+        <p class="font-semibold">${monthLabel} — ${fmtPKR(inv.amount)}</p>
+        <p class="text-xs opacity-60">${inv.due_date ? 'Due: ' + inv.due_date : ''}</p>
+        ${rejectedProof ? `<p class="text-xs text-red-500 mt-1">Previous submission rejected${rejectedProof.admin_note ? ': ' + rejectedProof.admin_note : ''}. Please submit again.</p>` : ''}
+      </div>
+      <div class="flex items-center gap-2">${statusBadge}${actionHtml}</div>
+    </div>`;
+  }).join('');
+}
+
+async function openPaymentProofModal(invoiceId){
+  document.getElementById('ppInvoiceId').value = invoiceId;
+  document.getElementById('ppReferenceNo').value = '';
+  document.getElementById('ppFile').value = '';
+  document.getElementById('ppFileStatus').textContent = '';
+
+  if(!easypaisaSettingsCache){
+    const { data } = await supabaseClient.from('academy_settings').select('*').eq('id', 1).single();
+    easypaisaSettingsCache = data || {};
+  }
+  const num = easypaisaSettingsCache.easypaisa_account_number || '—';
+  const name = easypaisaSettingsCache.easypaisa_account_name || '—';
+  document.getElementById('paymentProofInstructions').innerHTML =
+    `Is EasyPaisa account par payment bhej dein:<br>
+     <strong>Number:</strong> ${num}<br>
+     <strong>Name:</strong> ${name}<br>
+     Phir neeche transaction/reference number aur screenshot submit karein.`;
+
+  document.getElementById('paymentProofModal').classList.remove('hidden');
+}
+
+function closePaymentProofModal(){
+  document.getElementById('paymentProofModal').classList.add('hidden');
+}
+
+async function submitPaymentProof(e){
+  e.preventDefault();
+  const invoiceId = document.getElementById('ppInvoiceId').value;
+  const referenceNo = document.getElementById('ppReferenceNo').value.trim();
+  const fileInput = document.getElementById('ppFile');
+  const statusEl = document.getElementById('ppFileStatus');
+
+  if(!fileInput.files || !fileInput.files[0]){ alert('Please attach a payment screenshot.'); return false; }
+  const { data: { user } } = await supabaseClient.auth.getUser();
+  const studentId = window.__myStudentId;
+  const invoice = studentInvoicesCache.find(i => i.id === invoiceId);
+  if(!invoice){ alert('Invoice not found — please refresh and try again.'); return false; }
+
+  const file = fileInput.files[0];
+  const path = `${studentId}/${invoiceId}_${Date.now()}_${file.name}`;
+  statusEl.textContent = 'Uploading…';
+  const { error: upErr } = await supabaseClient.storage.from('payment-proofs').upload(path, file, { upsert: true });
+  if(upErr){ statusEl.textContent = 'Upload failed: ' + upErr.message; return false; }
+  const { data: pub } = supabaseClient.storage.from('payment-proofs').getPublicUrl(path);
+
+  const { error } = await supabaseClient.from('fee_payments').insert({
+    invoice_id: invoiceId,
+    student_id: studentId,
+    amount: invoice.amount,
+    method: 'easypaisa',
+    reference_no: referenceNo,
+    receipt_url: pub.publicUrl,
+    status: 'pending',
+    submitted_by: user.id,
+    paid_at: new Date().toISOString()
+  });
+  if(error){ alert('Could not submit: ' + error.message); return false; }
+  closePaymentProofModal();
+  showToast('Submitted for review. Admin will verify soon.');
+  loadStudentInvoices(studentId);
+  return false;
+}
+
+/* ---- Parent side ---- */
+
+async function loadParentInvoices(studentId){
+  const wrap = document.getElementById('parentFeesBox');
+  const box = document.getElementById('parentInvoiceList');
+  wrap.classList.remove('hidden');
+  box.innerHTML = 'Loading…';
+  const { data: invoices, error } = await supabaseClient.from('fee_invoices').select('*').eq('student_id', studentId).order('month', { ascending: false });
+  if(error){ box.innerHTML = '<p class="opacity-60">Could not load invoices.</p>'; return; }
+  if(!invoices || invoices.length===0){ box.innerHTML = '<p class="opacity-60">No fee invoices yet.</p>'; return; }
+  box.innerHTML = invoices.map(inv => {
+    const monthLabel = inv.month ? new Date(inv.month + 'T00:00:00').toLocaleDateString('en-PK', { month: 'long', year: 'numeric' }) : '—';
+    const statusBadge = inv.status === 'paid'
+      ? '<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-700 dark:text-emerald-400">Paid ✓</span>'
+      : '<span class="px-2.5 py-1 rounded-full text-xs font-semibold bg-red-500/15 text-red-600 dark:text-red-400">Unpaid</span>';
+    return `<div class="p-4 rounded-xl bg-fog-50 dark:bg-emerald-950 border border-gold-500/10 flex flex-wrap justify-between items-center gap-2">
+      <div>
+        <p class="font-semibold">${monthLabel} — ${fmtPKR(inv.amount)}</p>
+        <p class="text-xs opacity-60">${inv.due_date ? 'Due: ' + inv.due_date : ''}</p>
+      </div>
+      ${statusBadge}
+    </div>`;
+  }).join('');
+}
+
 /* ---------------- HOMEWORK SUBMISSIONS (teacher/admin review) ---------------- */
 let currentHwTaskId = null;
 
@@ -4065,6 +4463,8 @@ async function loadAcademySettings(){
   document.getElementById('setAcademyAddress').value = data.address || '';
   document.getElementById('setAcademyPhone').value = data.phone || '';
   document.getElementById('setAcademyEmail').value = data.email || '';
+  document.getElementById('setEasypaisaNumber').value = data.easypaisa_account_number || '';
+  document.getElementById('setEasypaisaName').value = data.easypaisa_account_name || '';
 }
 
 async function saveAcademySettings(e){
@@ -4074,7 +4474,9 @@ async function saveAcademySettings(e){
     name: document.getElementById('setAcademyName').value.trim(),
     address: document.getElementById('setAcademyAddress').value.trim(),
     phone: document.getElementById('setAcademyPhone').value.trim(),
-    email: document.getElementById('setAcademyEmail').value.trim()
+    email: document.getElementById('setAcademyEmail').value.trim(),
+    easypaisa_account_number: document.getElementById('setEasypaisaNumber').value.trim(),
+    easypaisa_account_name: document.getElementById('setEasypaisaName').value.trim()
   };
   const { error } = await supabaseClient.from('academy_settings').upsert(payload, { onConflict: 'id' });
   if(error){ alert('Could not save: ' + error.message); return false; }
