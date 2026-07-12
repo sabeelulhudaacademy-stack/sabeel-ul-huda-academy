@@ -188,9 +188,12 @@
 </head>
 
 <body class="font-body text-emerald-950 dark:text-fog-100 antialiased transition-colors duration-500">
+<div id="offlineBanner" role="status" class="hidden fixed top-0 inset-x-0 z-[60] bg-red-600 text-white text-xs md:text-sm font-semibold text-center py-2 px-4">
+  You're offline — some features (search, prayer times, sync) won't work until your connection returns.
+</div>
 
 <!-- ================= NAVBAR ================= -->
-<header class="fixed top-0 inset-x-0 z-50 backdrop-blur-md bg-fog-50/90 dark:bg-emerald-950/90 border-b border-gold-500/20 transition-colors duration-500">
+<header id="siteHeader" class="fixed top-0 inset-x-0 z-50 backdrop-blur-md bg-fog-50/90 dark:bg-emerald-950/90 border-b border-gold-500/20 transition-colors duration-500 transition-[top]">
   <div class="max-w-7xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between gap-2 xl:gap-3">
     <a href="#home" onclick="navigate('home')" class="flex items-center gap-3 shrink-0">
       <img src="data:image/png;base64,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" alt="Sabeel ul Huda Academy logo" width="36" height="36" class="shrink-0 object-contain">
@@ -318,7 +321,7 @@
       </div>
       <div class="reveal relative">
         <div class="relative rounded-[2rem] overflow-hidden border-4 border-gold-500/40 shadow-2xl aspect-[4/5] max-w-md mx-auto frame-corner">
-          <img src="https://images.unsplash.com/photo-1609599006353-e629aaabfeae?q=80&w=800&auto=format&fit=crop" alt="Student learning Quran online" class="w-full h-full object-cover">
+          <img src="https://images.unsplash.com/photo-1609599006353-e629aaabfeae?q=80&w=800&auto=format&fit=crop" alt="Student learning Quran online" fetchpriority="high" class="w-full h-full object-cover">
         </div>
         <div class="absolute -bottom-6 -left-4 md:-left-8 bg-fog-50 dark:bg-emerald-900 rounded-2xl shadow-xl px-5 py-4 border border-gold-500/30">
           <p class="text-3xl font-display font-bold text-emerald-800 dark:text-gold-400">M.Phil</p>
@@ -492,7 +495,7 @@
       <p data-i18n="courses_sub" class="text-fog-100/80 mt-4">From first letters to advanced Islamic scholarship — for every age, worldwide.</p>
       <div class="relative max-w-xl mx-auto mt-8">
         <svg class="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-900/50 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path stroke-linecap="round" d="m21 21-4.35-4.35"/></svg>
-        <input type="text" id="courseSearchInput" oninput="filterCourses(this.value)" placeholder="Search courses — e.g. Tajweed, Hifz, Arabic..." class="w-full pl-12 pr-12 py-4 rounded-full bg-fog-50 dark:bg-fog-50 text-emerald-950 placeholder-emerald-900/40 shadow-lg shadow-emerald-950/20 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500/60 transition">
+        <input type="text" id="courseSearchInput" oninput="debouncedFilterCourses(this.value)" placeholder="Search courses — e.g. Tajweed, Hifz, Arabic..." class="w-full pl-12 pr-12 py-4 rounded-full bg-fog-50 dark:bg-fog-50 text-emerald-950 placeholder-emerald-900/40 shadow-lg shadow-emerald-950/20 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500/60 transition">
         <button onclick="clearCourseSearch()" id="courseSearchClear" class="hidden absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-emerald-900/10 hover:bg-emerald-900/20 flex items-center justify-center text-emerald-900/60 transition" aria-label="Clear search">
           <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></svg>
         </button>
@@ -568,7 +571,7 @@
       <p data-i18n="blog_sub" class="text-fog-100/80 mt-4">Islamic articles, Friday messages, and educational reflections.</p>
       <div class="relative max-w-xl mx-auto mt-8">
         <svg class="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-900/50 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path stroke-linecap="round" d="m21 21-4.35-4.35"/></svg>
-        <input type="text" id="blogSearchInput" oninput="filterBlog(this.value)" placeholder="Search articles — e.g. Zakat, Ramadan, Duas..." class="w-full pl-12 pr-12 py-4 rounded-full bg-fog-50 dark:bg-fog-50 text-emerald-950 placeholder-emerald-900/40 shadow-lg shadow-emerald-950/20 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500/60 transition">
+        <input type="text" id="blogSearchInput" oninput="debouncedFilterBlog(this.value)" placeholder="Search articles — e.g. Zakat, Ramadan, Duas..." class="w-full pl-12 pr-12 py-4 rounded-full bg-fog-50 dark:bg-fog-50 text-emerald-950 placeholder-emerald-900/40 shadow-lg shadow-emerald-950/20 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500/60 transition">
         <button onclick="clearBlogSearch()" id="blogSearchClear" class="hidden absolute right-4 top-1/2 -translate-y-1/2 w-6 h-6 rounded-full bg-emerald-900/10 hover:bg-emerald-900/20 flex items-center justify-center text-emerald-900/60 transition" aria-label="Clear search">
           <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></svg>
         </button>
@@ -691,15 +694,31 @@
       </div>
     </div>
 
+    <!-- 99 Names of Allah -->
+    <div class="reveal bg-fog-100 dark:bg-emerald-900/60 rounded-2xl border border-gold-500/20 lg:col-span-2 overflow-hidden">
+      <div class="bg-emerald-900 dark:bg-emerald-950 islamic-pattern-dense px-6 md:px-8 py-8 text-center">
+        <h3 class="font-display text-xl md:text-2xl font-semibold text-fog-50">99 Names of Allah</h3>
+        <p class="text-fog-100/80 text-sm mt-1">Asma-ul-Husna — Arabic with Urdu meaning</p>
+      </div>
+      <div class="p-6 md:p-8">
+        <input id="asmaFilter" oninput="filterAsma()" autocomplete="off" placeholder="Search a name (e.g. Rahman, رحمن, رحمٰن)" class="w-full px-4 py-3 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500 mb-6">
+        <div id="asmaGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3"></div>
+      </div>
+    </div>
+
     <!-- Prayer Times -->
     <div class="reveal bg-fog-100 dark:bg-emerald-900/60 rounded-2xl p-7 border border-gold-500/20">
       <h3 class="font-display text-xl font-semibold mb-1">Prayer Times</h3>
       <p class="text-xs opacity-60 mb-4">Live times powered by the Aladhan API. Enter your city.</p>
       <form onsubmit="return runPrayerTimes(event)" class="flex flex-wrap gap-2">
-        <input id="ptCity" required placeholder="City" class="flex-1 min-w-[120px] px-4 py-3 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
-        <input id="ptCountry" required placeholder="Country" class="flex-1 min-w-[120px] px-4 py-3 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+        <input id="ptCity" placeholder="City" class="flex-1 min-w-[120px] px-4 py-3 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
+        <input id="ptCountry" placeholder="Country" class="flex-1 min-w-[120px] px-4 py-3 rounded-lg bg-fog-50 dark:bg-emerald-950 border border-gold-500/30 focus:outline-none focus:ring-2 focus:ring-gold-500">
         <button class="btn-gold px-5 py-3 rounded-lg font-semibold">Get Times</button>
       </form>
+      <button type="button" onclick="useMyLocationForPrayerTimes()" id="ptGeoBtn" class="mt-2 inline-flex items-center gap-1.5 text-xs font-semibold text-gold-600 dark:text-gold-400 underline underline-offset-4">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-3.5 h-3.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg>
+        Use my current location
+      </button>
       <div id="prayerResults" class="mt-4 grid grid-cols-3 gap-2 text-sm"></div>
       <p class="mt-4 text-xs opacity-70">Today's Hijri date: <span id="hijriDate" class="font-semibold"></span></p>
     </div>
@@ -2187,8 +2206,26 @@ const translations = {
 /* ---------------- RENDER ---------------- */
 const ENROLL_TEXT = {en:'Enroll →', ur:'داخلہ لیں ←', ar:'التسجيل ←'};
 
-courses.forEach((c,i)=>c._i=i);
-blog.forEach((b,i)=>b._i=i);
+function slugify(str){
+  return String(str).toLowerCase()
+    .replace(/[^\w\s-]/g, '')   // strip punctuation/emoji
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-');
+}
+
+function debounce(fn, wait){
+  let t;
+  return function(...args){
+    clearTimeout(t);
+    t = setTimeout(()=>fn.apply(this, args), wait);
+  };
+}
+const debouncedFilterCourses = debounce(filterCourses, 180);
+const debouncedFilterBlog = debounce(filterBlog, 180);
+
+courses.forEach((c,i)=>{ c._i=i; c.slug = slugify(c.name.en) || 'course-'+i; });
+blog.forEach((b,i)=>{ b._i=i; b.slug = slugify(b.title) || 'article-'+i; });
 
 function courseCardHtml(c){
   return `
@@ -2201,7 +2238,7 @@ function courseCardHtml(c){
         <span class="flex items-center gap-1.5 opacity-70"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6l4 2M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"/></svg>${c.duration || ''}</span>
         ${c.price ? `<span class="font-bold text-emerald-800 dark:text-gold-400">${c.price}</span>` : ''}
       </div>
-      <a onclick="showCourseDetail(${c._i});return false;" href="#course-detail" class="mt-auto inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-800 dark:text-gold-400 hover:gap-2.5 transition-all">View details <span>→</span></a>
+      <a onclick="showCourseDetail(${c._i});return false;" href="#course/${c.slug}" class="mt-auto inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-800 dark:text-gold-400 hover:gap-2.5 transition-all">View details <span>→</span></a>
     </div>`;
 }
 
@@ -2277,7 +2314,7 @@ function blogCardHtml(b){
       <h3 class="font-display text-xl font-bold mb-2 text-emerald-950 dark:text-fog-50">${b.title}</h3>
       <p class="text-sm opacity-70 leading-relaxed">${b.desc}</p>
       <div class="border-t border-gold-500/15 my-5"></div>
-      <a onclick="showBlogDetail(${b._i});return false;" href="#blog-detail" class="mt-auto inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-800 dark:text-gold-400 hover:gap-2.5 transition-all">Read more <span>→</span></a>
+      <a onclick="showBlogDetail(${b._i});return false;" href="#blog/${b.slug}" class="mt-auto inline-flex items-center gap-1.5 text-sm font-semibold text-emerald-800 dark:text-gold-400 hover:gap-2.5 transition-all">Read more <span>→</span></a>
     </div>`;
 }
 
@@ -2365,7 +2402,11 @@ function showCourseDetail(i, historyMode){
       </li>`).join('')}
     </ul>`;
   lastCourseIndex = i;
-  navigate('course-detail', historyMode);
+  setPageMeta(
+    (c.name[currentLang] || c.name.en) + ' — Sabeel ul Huda Academy',
+    (c.desc[currentLang] || c.desc.en)
+  );
+  navigate('course-detail', historyMode, 'course/' + c.slug);
 }
 
 function showBlogDetail(i, historyMode){
@@ -2379,18 +2420,33 @@ function showBlogDetail(i, historyMode){
   const paras = (b.content && b.content.length ? b.content : [b.desc]).map(p=>`<p class="text-sm md:text-base opacity-80 leading-relaxed mb-5">${p}</p>`).join('');
   document.getElementById('blogDetailBody').innerHTML = paras;
   lastBlogIndex = i;
-  navigate('blog-detail', historyMode);
+  setPageMeta(
+    b.title + ' — Sabeel ul Huda Academy Blog',
+    b.desc
+  );
+  navigate('blog-detail', historyMode, 'blog/' + b.slug);
 }
 
 /* ---------------- NAVIGATION ---------------- */
-function navigate(id, historyMode){
+const DEFAULT_TITLE = document.title;
+const DEFAULT_META_DESC = (document.querySelector('meta[name="description"]') || {}).content || '';
+
+function setPageMeta(title, description){
+  document.title = title || DEFAULT_TITLE;
+  const tag = document.querySelector('meta[name="description"]');
+  if(tag) tag.setAttribute('content', description || DEFAULT_META_DESC);
+}
+
+function navigate(id, historyMode, customHash){
   historyMode = historyMode || 'push';
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
   document.querySelectorAll('.navlink').forEach(n=>n.classList.toggle('active', n.dataset.nav===id));
   window.scrollTo({top:0,behavior:'smooth'});
-  if(historyMode === 'push') history.pushState({page:id}, '', '#'+id);
-  else if(historyMode === 'replace') history.replaceState({page:id}, '', '#'+id);
+  const hash = '#' + (customHash || id);
+  if(historyMode === 'push') history.pushState({page:id}, '', hash);
+  else if(historyMode === 'replace') history.replaceState({page:id}, '', hash);
+  if(id !== 'course-detail' && id !== 'blog-detail') setPageMeta(); // reset to site defaults on ordinary pages
   document.getElementById('mobileMenu').classList.add('hidden');
   const menuBtn = document.querySelector('[aria-controls="mobileMenu"]');
   if(menuBtn) menuBtn.setAttribute('aria-expanded','false');
@@ -2401,7 +2457,18 @@ function navigate(id, historyMode){
 // browser when this fires, so we just re-render the matching page without
 // touching history again (avoids creating a redirect loop).
 window.addEventListener('popstate', function(){
-  const id = (location.hash||'#home').replace('#','');
+  const raw = (location.hash||'#home').replace('#','');
+  if(raw.startsWith('course/')){
+    const slug = raw.slice('course/'.length);
+    const idx = courses.findIndex(c=>c.slug===slug);
+    if(idx !== -1){ showCourseDetail(idx, 'none'); return; }
+  }
+  if(raw.startsWith('blog/')){
+    const slug = raw.slice('blog/'.length);
+    const idx = blog.findIndex(b=>b.slug===slug);
+    if(idx !== -1){ showBlogDetail(idx, 'none'); return; }
+  }
+  const id = raw;
   if(id === 'course-detail' && lastCourseIndex !== null){
     showCourseDetail(lastCourseIndex, 'none');
   } else if(id === 'blog-detail' && lastBlogIndex !== null){
@@ -5530,6 +5597,13 @@ function filterAsma(){
 }
 
 
+/* ---- Bookmark cloud sync (Supabase) ----
+   Local storage stays the source of truth for instant UI updates.
+   When a student is logged in, changes are also pushed to a `bookmarks`
+   table in the background, and pulled/merged on login so bookmarks follow
+   the account across devices. Guests keep working entirely from localStorage. */
+let bookmarkSyncUserId = null;
+
 function getBookmarks(kind){
   try{ return JSON.parse(localStorage.getItem('bookmarks_'+kind) || '[]'); }catch(e){ return []; }
 }
@@ -5548,6 +5622,7 @@ function toggleBookmark(btn, kind, id, payload){
     btn.classList.remove('is-bookmarked');
     btn.setAttribute('aria-pressed', 'false');
     showToast('Removed from Saved');
+    pushBookmarkToCloud(kind, id, null); // null payload = delete
   } else {
     list.unshift(Object.assign({ id }, payload));
     if(list.length > 200) list = list.slice(0, 200);
@@ -5555,8 +5630,47 @@ function toggleBookmark(btn, kind, id, payload){
     btn.classList.add('is-bookmarked');
     btn.setAttribute('aria-pressed', 'true');
     showToast('Saved for later');
+    pushBookmarkToCloud(kind, id, payload);
   }
   if(document.getElementById('panelSaved') && document.getElementById('panelSaved').classList.contains('active')) renderSavedPanel();
+}
+
+// Fire-and-forget: never blocks the UI, and silently no-ops for guests or if the
+// `bookmarks` table isn't set up yet (see SQL note near the Supabase config above).
+async function pushBookmarkToCloud(kind, id, payload){
+  if(!bookmarkSyncUserId) return;
+  try{
+    if(payload === null){
+      await supabaseClient.from('bookmarks').delete()
+        .eq('user_id', bookmarkSyncUserId).eq('kind', kind).eq('item_id', id);
+    } else {
+      await supabaseClient.from('bookmarks').upsert({
+        user_id: bookmarkSyncUserId, kind, item_id: id, payload, updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id,kind,item_id' });
+    }
+  }catch(e){ /* offline or table missing — local copy already saved, safe to ignore */ }
+}
+
+// Called on login: pulls the account's saved bookmarks and merges them into
+// this device's local copy (cloud entries are added if missing locally).
+async function syncBookmarksFromCloud(userId){
+  bookmarkSyncUserId = userId;
+  try{
+    const { data, error } = await supabaseClient.from('bookmarks').select('*').eq('user_id', userId);
+    if(error || !data) return;
+    const byKind = {};
+    data.forEach(row => {
+      (byKind[row.kind] = byKind[row.kind] || []).push(Object.assign({ id: row.item_id }, row.payload));
+    });
+    Object.keys(byKind).forEach(kind => {
+      const local = getBookmarks(kind);
+      const cloud = byKind[kind];
+      const merged = [...cloud];
+      local.forEach(l => { if(!merged.some(m => m.id === l.id)) merged.push(l); });
+      saveBookmarks(kind, merged);
+    });
+    if(document.getElementById('panelSaved') && document.getElementById('panelSaved').classList.contains('active')) renderSavedPanel();
+  }catch(e){ /* offline or table missing — local bookmarks still work fine */ }
 }
 function copyCardText(btn, text){
   navigator.clipboard.writeText(text).then(()=>{
@@ -5564,6 +5678,14 @@ function copyCardText(btn, text){
   }).catch(()=>{
     showToast('Could not copy');
   });
+}
+function shareCardText(text, label){
+  const shareText = (label ? label + '\n\n' : '') + text + '\n\n— Sabeel ul Huda Academy';
+  if(navigator.share){
+    navigator.share({ text: shareText }).catch(()=>{});
+  } else {
+    window.open(`https://wa.me/?text=${encodeURIComponent(shareText)}`, '_blank', 'noopener');
+  }
 }
 function bookmarkIconSvg(){
   return `<svg viewBox="0 0 24 24" fill="currentColor" stroke="none" class="w-4 h-4 bm-fill"><path d="M6 3a2 2 0 0 0-2 2v16l8-4.5L20 21V5a2 2 0 0 0-2-2H6z"/></svg><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4 bm-outline"><path d="M6 3a2 2 0 0 0-2 2v16l8-4.5L20 21V5a2 2 0 0 0-2-2H6z"/></svg>`;
@@ -5596,7 +5718,7 @@ function buildQuranCard(surah, ayah, surahEnglishName, surahArabicName, arabicTe
   const cardId = `q_${surah}_${ayah}`;
   const bmId = `${surah}:${ayah}`;
   const bookmarked = isBookmarked('quran', bmId);
-  const audioBtn = globalNumber ? `<button type="button" class="card-action-btn" title="Play recitation" onclick="playAyahAudio(this, ${globalNumber})">
+  const audioBtn = globalNumber ? `<button type="button" class="card-action-btn" title="Play recitation" aria-label="Play recitation audio" onclick="playAyahAudio(this, ${globalNumber})">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><path d="M5 3v18l15-9L5 3z"/></svg>
           </button>` : '';
   return `
@@ -5618,10 +5740,14 @@ function buildQuranCard(surah, ayah, surahEnglishName, surahArabicName, arabicTe
           </button>
           <div class="flex items-center gap-1.5">
             ${audioBtn}
-            <button type="button" class="card-action-btn" title="Copy" onclick='copyCardText(this, ${JSON.stringify(arabicText + (urduText ? "\n" + urduText : ""))})'>
+            <button type="button" class="card-action-btn" title="Copy" aria-label="Copy verse text" onclick='copyCardText(this, ${JSON.stringify(arabicText + (urduText ? "\n" + urduText : ""))})'>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
             </button>
-            <button type="button" class="card-action-btn bookmark-btn ${bookmarked ? 'is-bookmarked' : ''}" aria-pressed="${bookmarked}" title="Save"
+            <button type="button" class="card-action-btn" title="Share" aria-label="Share verse via WhatsApp or other apps"
+              onclick='shareCardText(${JSON.stringify(arabicText + (urduText ? "\n" + urduText : ""))}, ${JSON.stringify("Surah " + surahEnglishName + " — " + surah + ":" + ayah)})'>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>
+            </button>
+            <button type="button" class="card-action-btn bookmark-btn ${bookmarked ? 'is-bookmarked' : ''}" aria-pressed="${bookmarked}" title="Save" aria-label="Save verse to bookmarks"
               onclick='toggleBookmark(this, "quran", ${JSON.stringify(bmId)}, {surah:${surah}, ayah:${ayah}, surahEnglishName:${JSON.stringify(surahEnglishName)}, surahArabicName:${JSON.stringify(surahArabicName)}, arabicText:${JSON.stringify(arabicText)}, urduText:${JSON.stringify(urduText)}})'>
               ${bookmarkIconSvg()}
             </button>
@@ -5710,7 +5836,8 @@ async function runQuranSearch(e){
       return buildQuranCard(m.surah.number, m.numberInSurah, m.surah.englishName, m.surah.name, arabicText, urduText, q, m.number);
     }).join('');
   }catch(err){
-    box.innerHTML = errorRow('Could not reach the search service — check your internet connection and try again.');
+    box.innerHTML = errorRow('Could not reach the search service — check your internet connection and try again.') +
+      `<div class="text-center mt-2"><button type="button" onclick="runQuranSearch()" class="text-gold-600 dark:text-gold-400 text-sm font-semibold underline underline-offset-4">Retry</button></div>`;
   }
   return false;
 }
@@ -5765,7 +5892,8 @@ async function viewSelectedRange(e){
     ]);
 
     if(!(arRes && arRes.code===200 && arRes.data)){
-      box.innerHTML = errorRow('Could not load — please try again.');
+      box.innerHTML = errorRow('Could not load — please try again.') +
+        `<div class="text-center mt-2"><button type="button" onclick="viewSelectedRange()" class="text-gold-600 dark:text-gold-400 text-sm font-semibold underline underline-offset-4">Retry</button></div>`;
       return false;
     }
     const ayahs = arRes.data.ayahs || [];
@@ -5850,13 +5978,36 @@ function renderBookChips(){
 }
 function selectHadithBook(slug){ activeHadithBook = slug; renderBookChips(); }
 
+const HADITH_CACHE_VERSION = 'v1';
+function hadithLocalStorageKey(key){ return `hadith_cache_${HADITH_CACHE_VERSION}_${key}`; }
+
+function readHadithFromLocalStorage(key){
+  try{
+    const raw = localStorage.getItem(hadithLocalStorageKey(key));
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){ return null; } // corrupt entry or storage unavailable — fall back to a network fetch
+}
+
+function writeHadithToLocalStorage(key, data){
+  try{ localStorage.setItem(hadithLocalStorageKey(key), JSON.stringify(data)); }
+  catch(e){ /* storage full or unavailable — silently skip, in-memory cache still works for this session */ }
+}
+
 async function loadHadithEdition(lang, slug){
   const key = `${lang}-${slug}`;
   if(hadithCache[key]) return hadithCache[key];
+
+  const stored = readHadithFromLocalStorage(key);
+  if(stored){
+    hadithCache[key] = stored;
+    return stored;
+  }
+
   const res = await fetch(`https://cdn.jsdelivr.net/gh/fawazahmed0/hadith-api@1/editions/${lang}-${slug}.json`);
   if(!res.ok) throw new Error('fetch failed: '+key);
   const data = await res.json();
   hadithCache[key] = data;
+  writeHadithToLocalStorage(key, data);
   return data;
 }
 
@@ -5876,10 +6027,14 @@ function buildHadithCard(r, q){
         <div class="isnad-divider" aria-hidden="true"><span class="seg"></span><span class="node"></span><span class="seg"></span><span class="node"></span><span class="seg"></span></div>
         ${r.urduText ? `<p class="text-sm leading-relaxed font-urdu text-right" dir="rtl">${highlight(r.urduText, q || '')}</p>` : `<p class="text-xs opacity-50">Urdu translation not available</p>`}
         <div class="flex items-center justify-end gap-1.5 pt-1">
-          <button type="button" class="card-action-btn" title="Copy" onclick='copyCardText(this, ${JSON.stringify((r.arabicText || "") + (r.urduText ? "\n" + r.urduText : ""))})'>
+          <button type="button" class="card-action-btn" title="Copy" aria-label="Copy hadith text" onclick='copyCardText(this, ${JSON.stringify((r.arabicText || "") + (r.urduText ? "\n" + r.urduText : ""))})'>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
           </button>
-          <button type="button" class="card-action-btn bookmark-btn ${bookmarked ? 'is-bookmarked' : ''}" aria-pressed="${bookmarked}" title="Save"
+          <button type="button" class="card-action-btn" title="Share" aria-label="Share hadith via WhatsApp or other apps"
+            onclick='shareCardText(${JSON.stringify((r.arabicText || "") + (r.urduText ? "\n" + r.urduText : ""))}, ${JSON.stringify(r.bookLabel + " — Hadith No. " + r.number)})'>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-4 h-4"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="m8.6 13.5 6.8 4M15.4 6.5l-6.8 4"/></svg>
+          </button>
+          <button type="button" class="card-action-btn bookmark-btn ${bookmarked ? 'is-bookmarked' : ''}" aria-pressed="${bookmarked}" title="Save" aria-label="Save hadith to bookmarks"
             onclick='toggleBookmark(this, "hadith", ${JSON.stringify(bmId)}, ${JSON.stringify(r)})'>
             ${bookmarkIconSvg()}
           </button>
@@ -5952,32 +6107,101 @@ async function runHadithSearch(e){
 
     box.innerHTML = results.map(r => buildHadithCard(r, q)).join('');
   }catch(err){
-    box.innerHTML = errorRow('Could not load Hadith data — check your internet connection and try again.');
+    box.innerHTML = errorRow('Could not load Hadith data — check your internet connection and try again.') +
+      `<div class="text-center mt-2"><button type="button" onclick="runHadithSearch()" class="text-gold-600 dark:text-gold-400 text-sm font-semibold underline underline-offset-4">Retry</button></div>`;
   }
   return false;
 }
 
 /* ---------------- TOOLS: PRAYER TIMES ---------------- */
+let lastPrayerTimesQuery = null; // remembers last successful lookup mode for the retry button
+
 async function runPrayerTimes(e){
-  e.preventDefault();
+  if(e) e.preventDefault();
   const city = document.getElementById('ptCity').value.trim();
   const country = document.getElementById('ptCountry').value.trim();
   const box = document.getElementById('prayerResults');
+  if(!city || !country){
+    box.innerHTML = '<p class="col-span-3 opacity-60 text-sm">Enter a city and country, or tap "Use my current location" above.</p>';
+    return false;
+  }
+  lastPrayerTimesQuery = { type:'city', city, country };
   box.innerHTML = '<p class="col-span-3 opacity-60 text-sm">Loading...</p>';
   try{
     const res = await fetch(`https://api.aladhan.com/v1/timingsByCity?city=${encodeURIComponent(city)}&country=${encodeURIComponent(country)}&method=2`);
     const data = await res.json();
     if(data.code===200){
-      const t = data.data.timings;
-      const order = ['Fajr','Dhuhr','Asr','Maghrib','Isha'];
-      box.innerHTML = order.map(k=>`<div class="bg-fog-50 dark:bg-emerald-950 rounded-lg p-3 text-center border border-gold-500/20"><p class="text-xs opacity-60">${k}</p><p class="font-semibold">${t[k]}</p></div>`).join('');
+      renderPrayerTimings(data.data.timings);
     } else {
       box.innerHTML = '<p class="col-span-3 opacity-60 text-sm">City not found — check spelling and try again.</p>';
     }
   }catch(err){
-    box.innerHTML = '<p class="col-span-3 opacity-60 text-sm">Could not reach the prayer times service right now.</p>';
+    box.innerHTML = prayerTimesErrorRow();
   }
   return false;
+}
+
+function renderPrayerTimings(t){
+  const box = document.getElementById('prayerResults');
+  const order = ['Fajr','Dhuhr','Asr','Maghrib','Isha'];
+  box.innerHTML = order.map(k=>`<div class="bg-fog-50 dark:bg-emerald-950 rounded-lg p-3 text-center border border-gold-500/20"><p class="text-xs opacity-60">${k}</p><p class="font-semibold">${t[k]}</p></div>`).join('');
+}
+
+function prayerTimesErrorRow(){
+  return `<div class="col-span-3 flex flex-col items-center gap-2 py-2 text-sm">
+    <p class="opacity-60">Could not reach the prayer times service right now.</p>
+    <button type="button" onclick="retryPrayerTimes()" class="text-gold-600 dark:text-gold-400 font-semibold underline underline-offset-4">Retry</button>
+  </div>`;
+}
+
+function retryPrayerTimes(){
+  if(!lastPrayerTimesQuery) return;
+  if(lastPrayerTimesQuery.type === 'geo') fetchPrayerTimesByCoords(lastPrayerTimesQuery.lat, lastPrayerTimesQuery.lon);
+  else runPrayerTimes();
+}
+
+function useMyLocationForPrayerTimes(){
+  const box = document.getElementById('prayerResults');
+  if(!navigator.geolocation){
+    box.innerHTML = '<p class="col-span-3 opacity-60 text-sm">Your browser does not support location detection — please enter your city manually.</p>';
+    return;
+  }
+  const btn = document.getElementById('ptGeoBtn');
+  if(btn) btn.disabled = true;
+  box.innerHTML = '<p class="col-span-3 opacity-60 text-sm">Detecting your location...</p>';
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      if(btn) btn.disabled = false;
+      fetchPrayerTimesByCoords(pos.coords.latitude, pos.coords.longitude);
+    },
+    () => {
+      if(btn) btn.disabled = false;
+      box.innerHTML = '<p class="col-span-3 opacity-60 text-sm">Could not access your location — please allow location access, or enter your city manually.</p>';
+    },
+    { timeout: 10000 }
+  );
+}
+
+async function fetchPrayerTimesByCoords(lat, lon){
+  const box = document.getElementById('prayerResults');
+  lastPrayerTimesQuery = { type:'geo', lat, lon };
+  box.innerHTML = '<p class="col-span-3 opacity-60 text-sm">Loading...</p>';
+  try{
+    const res = await fetch(`https://api.aladhan.com/v1/timings?latitude=${lat}&longitude=${lon}&method=2`);
+    const data = await res.json();
+    if(data.code===200){
+      renderPrayerTimings(data.data.timings);
+      // best-effort: clear the manual city/country fields since we used GPS
+      const cityEl = document.getElementById('ptCity');
+      const countryEl = document.getElementById('ptCountry');
+      if(cityEl) cityEl.placeholder = 'City (auto-detected)';
+      if(countryEl) countryEl.placeholder = 'Country (auto-detected)';
+    } else {
+      box.innerHTML = '<p class="col-span-3 opacity-60 text-sm">Could not determine prayer times for your location.</p>';
+    }
+  }catch(err){
+    box.innerHTML = prayerTimesErrorRow();
+  }
 }
 
 function setHijriDate(){
@@ -6085,9 +6309,34 @@ renderBookChips();
 loadSurahList();
 renderRecentSearches('quran');
 renderRecentSearches('hadith');
+renderAsmaGrid();
+
+function updateOfflineBanner(){
+  const banner = document.getElementById('offlineBanner');
+  const header = document.getElementById('siteHeader');
+  if(!banner) return;
+  const isOffline = !navigator.onLine;
+  banner.classList.toggle('hidden', !isOffline);
+  if(header) header.style.top = isOffline ? '36px' : '0px'; // 36px matches the banner's py-2 + text height
+}
+window.addEventListener('online', updateOfflineBanner);
+window.addEventListener('offline', updateOfflineBanner);
+updateOfflineBanner();
 
 const initial = (location.hash||'#home').replace('#','');
-if(document.getElementById('page-'+initial)) navigate(initial, 'replace'); else navigate('home', 'replace');
+if(initial.startsWith('course/')){
+  const slug = initial.slice('course/'.length);
+  const idx = courses.findIndex(c=>c.slug===slug);
+  if(idx !== -1) showCourseDetail(idx, 'replace'); else navigate('home', 'replace');
+} else if(initial.startsWith('blog/')){
+  const slug = initial.slice('blog/'.length);
+  const idx = blog.findIndex(b=>b.slug===slug);
+  if(idx !== -1) showBlogDetail(idx, 'replace'); else navigate('home', 'replace');
+} else if(document.getElementById('page-'+initial)){
+  navigate(initial, 'replace');
+} else {
+  navigate('home', 'replace');
+}
 </script>
 
 </body>
